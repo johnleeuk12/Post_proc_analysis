@@ -311,7 +311,7 @@ ylabel('units')
 
 %% Analysis VT Phee 
 N = length(SUrate);
-phee_ind = 37;
+phee_ind = 29;
 X = [];
 for n = 1:N
     max_ind = find(SUrate{n}{1}.mean == max(SUrate{n}{1}.mean));

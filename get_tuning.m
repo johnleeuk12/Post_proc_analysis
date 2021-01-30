@@ -67,6 +67,9 @@ for n = 1:length(N_list_int) % n is each neuron
             SUrate{n}{ss}.PSTH = {};
             SUrate{n}{ss}.nid = Pool{ss}(p).neuron_nb;
             SUrate{n}{ss}.pid = p;
+            SUrate{n}{ss}.xb = Pool{ss}(p).xb;
+            SUrate{n}{ss}.xb.data = [];
+            
             for te = 1:size(rate{ss}.PSTH,2)
                 SUrate{n}{ss}.PSTH{te}= rate{ss}.PSTH{p,te};
             end

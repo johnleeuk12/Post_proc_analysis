@@ -3,6 +3,8 @@
 % run analysis_comp_hole
 
 % tracks = unique(Hole_Track(:,2));
+
+figure
 holes = unique(Hole_Track(:,1));
 BF_tracks = {};
 Lat_tracks = {};
@@ -42,6 +44,14 @@ for h = 1:length(holes)
 end
 % length(find(Hole_Track(:,2) == 2))
 
+figure
+histogram(BF_pool,edges);
+    xticks([1e3 : 2.5*1e3:3*1e4])
+    % set(gca,'xticklabel',num2str(get(gca,'xtick')/1e3','%.1f'))
+    xticklabels(num2str(get(gca,'xtick')'/1e3))
+    xlabel('kHz')
+    
+    set(gca,'xscale','log')
 
 
 %%
