@@ -309,35 +309,88 @@ xlabel('CF (kHz)')
 ylabel('units')
 
 
-%% Analysis VT Phee 
+%% Analysis VT Phee
 N = length(SUrate);
-phee_ind = 29;
+phee_cf = 7.64;
 X = [];
 for n = 1:N
     max_ind = find(SUrate{n}{1}.mean == max(SUrate{n}{1}.mean));
     max_ind = max_ind(1);
     spont = mean(SUrate{n}{1}.spont);
     SD = std(SUrate{n}{1}.spont,0,1);
-    if SUrate{n}{1}.mean(max_ind) > spont +2*SD
-       X = [X; [SUrate{n}{1}.xb.stimulus_ch1(max_ind,8)*1e-3 (SUrate{n}{2}.mean(phee_ind)-mean(SUrate{n}{2}.spont))/max(SUrate{n}{2}.mean)]];
+    if SUrate{n}{1}.mean(max_ind)>2
+        if SUrate{n}{1}.mean(max_ind) > spont +2*SD
+            if max(SUrate{n}{2}.mean) > 2
+                phee_ind = find(SUrate{n}{1, 2}.xb.stimulus_ch1(:,10) == phee_cf);
+                if 
+                X = [X; [SUrate{n}{1}.xb.stimulus_ch1(max_ind,8)*1e-3 (SUrate{n}{2}.mean(phee_ind)-mean(SUrate{n}{2}.spont))/max(SUrate{n}{2}.mean)]];
+            end
+        end
     end
-    
 end
 
 [B,I] = sort(X(:,1));
 X2 = [B,X(I,2)];
-M = movmean(X2(:,2),5);
-figure(1)
+M = movmedian(X2(:,2),10);
+figure
 hold off
 scatter(X2(:,1),X2(:,2))
 hold on
 plot(B,M);
-xline(SUrate{1}{2}.xb.stimulus_ch1(phee_ind,10))
+xline(phee_cf)
 set(gca, 'xScale', 'log')
 xticks([0 : 3.5:30])
-title([num2str(SUrate{1}{2}.xb.stimulus_ch1(phee_ind,10)) 'kHz'])
+axis([2 inf -1 1])
+title([num2str(phee_cf) 'kHz'])
 
 
+%% Analysis VT trill
+
+N = length(SUrate);
+X = [];
+% trill_cf = [9.8, 10];
+trill_cf = [9.8, 10];
+trill_fm = [27,30];
+trill_fmd = [925 1000];
+for n = 1:N
+    if ~isempty(SUrate{n}{1})
+        max_ind = find(SUrate{n}{1}.mean == max(SUrate{n}{1}.mean));
+        max_ind = max_ind(1);
+        spont = mean(SUrate{n}{1}.spont);
+        SD = std(SUrate{n}{1}.spont,0,1);
+        
+        trill_ind_cf = find(SUrate{n}{2}.stim(:,1) >trill_cf(1) & SUrate{n}{2}.stim(:,1) <trill_cf(2)...
+            & SUrate{n}{2}.stim(:,3)> trill_fmd(1) & SUrate{n}{2}.stim(:,3) < trill_fmd(2));
+        trill_ind_fm = find(SUrate{n}{2}.stim(:,2) > trill_fm(1) & SUrate{n}{2}.stim(:,2) < trill_fm(2)  ...
+            & SUrate{n}{2}.stim(:,3)> trill_fmd(1) & SUrate{n}{2}.stim(:,3) < trill_fmd(2));
+        trill_ind = intersect(trill_ind_cf, trill_ind_fm);
+        if length(trill_ind) >1
+            trill_ind = trill_ind(end);
+        end
+        if ~ isempty(trill_ind)
+            if SUrate{n}{1}.mean(max_ind) > spont +2*SD
+                if max(SUrate{n}{2}.mean(trill_ind_fm))>1
+                    X = [X; [SUrate{n}{1}.xb.stimulus_ch1(max_ind,8)*1e-3 (SUrate{n}{2}.mean(trill_ind)-mean(SUrate{n}{2}.spont(trill_ind_fm)))/max(SUrate{n}{2}.mean(trill_ind_fm))]];
+                end
+            end
+        end
+    end
+    
+end
 
 
+figure
+[B,I] = sort(X(:,1));
+X2 = [B,X(I,2)];
+M = movmean(X2(:,2),5);
+hold off
+scatter(X2(:,1),X2(:,2))
+hold on
+% xline(6.64);
+xline(mean(trill_cf));
+plot(B,M);
+
+set(gca, 'xScale', 'log')
+xticks([0 : 3.5:30])
+title([num2str(mean(trill_cf)) 'kHz'])
 
