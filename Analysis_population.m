@@ -313,17 +313,45 @@ ylabel('units')
 N = length(SUrate);
 phee_cf = 7.16;
 X = [];
+X_onset = [];
+X_sust = [];
+X_offset = [];
+black_list = [];
+black_list = [43, 119];
+%  black_list = [211, 238];
+ana.onset =  [];
+ana.sust = [];cle
+ana.offset = [];
+PreStim = 300;
+PostStim = 500;
+Stimdur = 2180-PostStim-PreStim;
+
+
 for n = 1:N
     max_ind = find(SUrate{n}{1}.mean == max(SUrate{n}{1}.mean));
-    max_ind = max_ind(1);
+%         max_ind = max_ind(1);
     spont = mean(SUrate{n}{1}.spont);
     SD = std(SUrate{n}{1}.spont,0,1);
-    if SUrate{n}{1}.mean(max_ind)>2
-        if SUrate{n}{1}.mean(max_ind) > spont +2*SD
-            if max(SUrate{n}{2}.mean) > 2
+    if ~ismember(SUrate{n}{1}.nid,black_list)
+        if max(SUrate{n}{1}.mean)>2 && max(SUrate{n}{1}.mean) > spont + 2*SD
+            if max(SUrate{n}{2}.mean) > 1
                 phee_ind = find(SUrate{n}{1, 2}.xb.stimulus_ch1(:,10) == phee_cf);
+                
+                % compute onset/sustained/offset responses here
+%                 for st = 1:length(SUrate{n}{2}.mean)
+%                     ana.onset.mean(n,st) = mean2(SUrate{n}{2}.PSTH{st}(:,PreStim:PreStim+250));
+%                     ana.sust.mean(n,st) = mean2(SUrate{n}{2}.PSTH{st}(:,PreStim+250:PreStim+Stimdur));
+%                     ana.offset.mean(n,st) = mean2(SUrate{n}{2}.PSTH{st}(:,PreStim+Stimdur:PreStim+Stimdur+250));
+%                 end
+                
+                
                 if ~isempty(phee_ind)
-                    X = [X; [SUrate{n}{1}.xb.stimulus_ch1(max_ind,8)*1e-3 (SUrate{n}{2}.mean(phee_ind)-mean(SUrate{n}{2}.spont))/max(SUrate{n}{2}.mean) SUrate{n}{2}.nid]];
+                    
+                    X = [X; [ mean(SUrate{n}{1}.xb.stimulus_ch1(max_ind,8)*1e-3) (SUrate{n}{2}.mean(phee_ind)-mean(SUrate{n}{2}.spont))/max(SUrate{n}{2}.mean) SUrate{n}{2}.nid]];
+%                     X = [X; [ mean(SUrate{n}{1}.xb.stimulus_ch1(max_ind,8)*1e-3) (SUrate{n}{2}.mean(phee_ind)-mean(SUrate{n}{2}.spont))/max(SUrate{n}{2}.mean) SUrate{n}{2}.nid]];
+                    %                         X_onset = [X_onset; [SUrate{n}{1}.xb.stimulus_ch1(max_ind,8)*1e-3 (ana.onset.mean(n,phee_ind)-mean(SUrate{n}{2}.spont))/max(ana.onset.mean(n,:)) SUrate{n}{2}.nid]];
+                    %                         X_sust = [X_sust; [SUrate{n}{1}.xb.stimulus_ch1(max_ind,8)*1e-3 (ana.sust.mean(n,phee_ind)-mean(SUrate{n}{2}.spont))/max(ana.sust.mean(n,:)) SUrate{n}{2}.nid]];
+                    %                         X_offset = [X_offset; [SUrate{n}{1}.xb.stimulus_ch1(max_ind,8)*1e-3 (ana.offset.mean(n,phee_ind)-mean(SUrate{n}{2}.spont))/max(ana.offset.mean(n,:)) SUrate{n}{2}.nid]];
                 end
             end
         end
@@ -332,12 +360,16 @@ end
 
 [B,I] = sort(X(:,1));
 X2 = [B,X(I,2)];
-M = movmedian(X2(:,2),10);
-figure
+% [B,I] = sort(X_onset(:,1));
+% X2 = [B,X_onset(I,2)];
+M2 = movmedian(X2(:,2),10);
+% M2 = movmean(X2(:,2),20);
+% figure
 hold off
 scatter(X2(:,1),X2(:,2))
 hold on
-plot(B,M);
+plot(B,M2,'-r');
+% plot(B,M2,'--g');
 xline(phee_cf)
 set(gca, 'xScale', 'log')
 xticks([0 : 3.5:30])
@@ -345,6 +377,9 @@ axis([2 inf -1 1])
 title([num2str(phee_cf) 'kHz'])
 
 
+% id_test = find(X(:,1)> 6 & X(:,1) <9 & X(:,2)< -0.4);
+% nid_list = X(id_test.',3);
+% SUplot(nid_list,SUrate,Pool,raster);
 %% Analysis VT trill
 
 N = length(SUrate);

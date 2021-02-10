@@ -16,6 +16,7 @@ raster = {};
 pause(0.1)
 SUrate = get_tuning(Pool,rate,raster,0);
 
+% SUrate = ana2Dstim(Pool,rate,raster,0);
 % close all
 
 %% Extracting waveforms directly from units

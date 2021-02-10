@@ -17,7 +17,7 @@ Hole_Track = [];
 nat_rev = [];
 for n = 1:length(N_list_1)
     rec_list_1 = find([Pool_1.neuron_nb] ==N_list_1(n));
-    p = rec_list_1(1); %try end as well
+    p = rec_list_1(end); %try end as well
     nreps = size(rate_1.stim{1},2);
     SUrate_1{n}.mean = mean(rate_1.stim{p},2); % -mean(rate_1.pre{p},2); %(Spikes/second)
     SUrate_1{n}.error = std(rate_1.stim{p},1,2)/sqrt(nreps);
@@ -63,7 +63,7 @@ for n = 1:length(N_list_1)
         max_id = find(SUrate_1{n}.mean == max(SUrate_1{n}.mean));
         
         %Calculating Best frequency for tones
-        if SUrate_1{n}.mean(max_id(1)) > SUrate_1{n}.spont +2*SUrate_1{n}.error(max_id(1))
+        if SUrate_1{n}.mean(max_id(1)) > SUrate_1{n}.spont +1*std2(rate_1.pre{p})  %*SUrate_1{n}.error(max_id(1))
             BF_pool = [BF_pool stim_label_1(max_id(1))];
             
             Hole_Track = [Hole_Track; Pool_1(p).hole_nb Pool_1(p).track_nb];

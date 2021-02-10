@@ -195,19 +195,3 @@ errorbar(stim,mean(FR_norm_2),error)
 
 
 
-
-
-
-
-
-
-% N_list_1 = unique([Pool_1.neuron_nb]);
-% 
-% for n = 1:length(N_list_1)
-%     rec_list_1 = find([Pool_1.neuron_nb] ==N_list_1(n));
-%     p = rec_list_1(1); %try end as well
-%     nreps = size(rate_1.stim{1},2);
-%     SUrate_1{n}.mean = mean(rate_1.stim{p},2); % -mean(rate_1.pre{p},2); %(Spikes/second)
-%     SUrate_1{n}.error = std(rate_1.stim{p},1,2)/sqrt(nreps);
-%     SUrate_1{n}.spont = mean(mean(rate_1.pre{p}));
-%     StimDur = Pool_1(p).xb.stimulus_ch1(:,5)*1e-3;
