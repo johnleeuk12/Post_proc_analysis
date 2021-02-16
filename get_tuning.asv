@@ -59,7 +59,7 @@ for n = 1:length(N_list_int) % n is each neuron
     if check_counter ==1
         for ss = 1:N_pool
             if ss ~=3
-            p = rec_list{ss}(end); % try end as well change for figures
+            p = rec_list{ss}(1); % try end as well change for figures
             else
                 p = rec_list{ss}(end);
             end

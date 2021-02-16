@@ -326,37 +326,58 @@ PreStim = 300;
 PostStim = 500;
 Stimdur = 2180-PostStim-PreStim;
 
+nid_list = [];
+% testing for matching PT
+% for n =1:N
+%     if SUrate{n}{1}.pid ~= SUrate{n}{3}.pid
+%         spont1 = mean(SUrate{n}{1}.spont);
+%         spont2 = mean(SUrate{n}{3}.spont);
+%         SD = std(SUrate{n}{1}.spont,0,1);
+%         SD2 = std(SUrate{n}{3}.spont,0,1);
+%         
+%         if max(SUrate{n}{1}.mean) > spont1 + 2*SD || max(SUrate{n}{1}.mean) > spont2 + 2*SD2
+%             nid_list = [nid_list SUrate{n}{1}.nid];
+%         end
+%     end
+% end
+
+
 
 for n = 1:N
     max_ind = find(SUrate{n}{1}.mean == max(SUrate{n}{1}.mean));
-        max_ind = max_ind(1);
+    max_ind = max_ind(1);
     spont = mean(SUrate{n}{1}.spont);
+    error = std(SUrate{n}{1}.raw(max_ind,:),0,2)/sqrt(5);
     SD = std(SUrate{n}{1}.spont,0,1);
     if ~ismember(SUrate{n}{1}.nid,black_list)
         if max(SUrate{n}{1}.mean)>2 && max(SUrate{n}{1}.mean) > spont + 2*SD
-            if max(SUrate{n}{2}.mean) > 1
-                phee_ind = find(SUrate{n}{1, 2}.xb.stimulus_ch1(:,10) == phee_cf);
-                
-                % compute onset/sustained/offset responses here
-%                 for st = 1:length(SUrate{n}{2}.mean)
-%                     ana.onset.mean(n,st) = mean2(SUrate{n}{2}.PSTH{st}(:,PreStim:PreStim+250));
-%                     ana.sust.mean(n,st) = mean2(SUrate{n}{2}.PSTH{st}(:,PreStim+250:PreStim+Stimdur));
-%                     ana.offset.mean(n,st) = mean2(SUrate{n}{2}.PSTH{st}(:,PreStim+Stimdur:PreStim+Stimdur+250));
-%                 end
-                
-                
-                if ~isempty(phee_ind)
+            if max(SUrate{n}{1}.mean)-error > spont
+                if max(SUrate{n}{2}.mean) > 1
+                    phee_ind = find(SUrate{n}{1, 2}.xb.stimulus_ch1(:,10) == phee_cf);
                     
-                    X = [X; [ mean(SUrate{n}{1}.xb.stimulus_ch1(max_ind,8)*1e-3) (SUrate{n}{2}.mean(phee_ind)-mean(SUrate{n}{2}.spont)) SUrate{n}{2}.nid]]; %/max(SUrate{n}{2}.mean) SUrate{n}{2}.nid]];
-%                     X = [X; [ mean(SUrate{n}{1}.xb.stimulus_ch1(max_ind,8)*1e-3) (SUrate{n}{2}.mean(phee_ind)-mean(SUrate{n}{2}.spont))/(max(SUrate{n}{1}.mean)-spont) SUrate{n}{2}.nid]];
-                    %                         X_onset = [X_onset; [SUrate{n}{1}.xb.stimulus_ch1(max_ind,8)*1e-3 (ana.onset.mean(n,phee_ind)-mean(SUrate{n}{2}.spont))/max(ana.onset.mean(n,:)) SUrate{n}{2}.nid]];
-                    %                         X_sust = [X_sust; [SUrate{n}{1}.xb.stimulus_ch1(max_ind,8)*1e-3 (ana.sust.mean(n,phee_ind)-mean(SUrate{n}{2}.spont))/max(ana.sust.mean(n,:)) SUrate{n}{2}.nid]];
-                    %                         X_offset = [X_offset; [SUrate{n}{1}.xb.stimulus_ch1(max_ind,8)*1e-3 (ana.offset.mean(n,phee_ind)-mean(SUrate{n}{2}.spont))/max(ana.offset.mean(n,:)) SUrate{n}{2}.nid]];
+                    % compute onset/sustained/offset responses here
+                                    for st = 1:length(SUrate{n}{2}.mean)
+                                        ana.onset.mean(n,st) = mean2(SUrate{n}{2}.PSTH{st}(:,PreStim:PreStim+250));
+                                        ana.sust.mean(n,st) = mean2(SUrate{n}{2}.PSTH{st}(:,PreStim+250:PreStim+Stimdur));
+                                        ana.offset.mean(n,st) = mean2(SUrate{n}{2}.PSTH{st}(:,PreStim+Stimdur:PreStim+Stimdur+250));
+                                    end
+                    
+                    
+                    if ~isempty(phee_ind)
+                        
+                        X = [X; [ mean(SUrate{n}{1}.xb.stimulus_ch1(max_ind,8)*1e-3) (SUrate{n}{2}.mean(phee_ind)-mean(SUrate{n}{2}.spont)) SUrate{n}{2}.nid]]; %/max(SUrate{n}{2}.mean) SUrate{n}{2}.nid]];
+%                                             X = [X; [ mean(SUrate{n}{1}.xb.stimulus_ch1(max_ind,8)*1e-3) (SUrate{n}{2}.mean(phee_ind)-mean(SUrate{n}{2}.spont))/(max(SUrate{n}{1}.mean)-spont) SUrate{n}{2}.nid]];
+%                                                 X_onset = [X_onset; [SUrate{n}{1}.xb.stimulus_ch1(max_ind,8)*1e-3 (ana.onset.mean(n,phee_ind)-mean(SUrate{n}{2}.spont)) SUrate{n}{2}.nid]]; % /max(ana.onset.mean(n,:))
+                        %                         X_sust = [X_sust; [SUrate{n}{1}.xb.stimulus_ch1(max_ind,8)*1e-3 (ana.sust.mean(n,phee_ind)-mean(SUrate{n}{2}.spont))/max(ana.sust.mean(n,:)) SUrate{n}{2}.nid]];
+                        %                         X_offset = [X_offset; [SUrate{n}{1}.xb.stimulus_ch1(max_ind,8)*1e-3 (ana.offset.mean(n,phee_ind)-mean(SUrate{n}{2}.spont))/max(ana.offset.mean(n,:)) SUrate{n}{2}.nid]];
+                    end
                 end
             end
         end
     end
 end
+
+% X = X_onset;
 
 [B,I] = sort(X(:,1));
 X2 = [B,X(I,2)];
@@ -377,7 +398,7 @@ xline(phee_cf)
 set(gca, 'xScale', 'log')
 xticks([0 : 3.5:30])
 axis([2 inf -inf inf])
-% axis([2 inf -10 10]);
+axis([2 inf -10 10]);
 title([num2str(phee_cf) 'kHz'])
 
 

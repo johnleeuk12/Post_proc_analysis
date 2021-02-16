@@ -84,7 +84,7 @@ if a_code == 1 || a_code == 62
     lens = varargin{2}; %length of stim in ms
     for i = 1:length(u_list)
         y = eval(unit_list.data{u_list(i),4});
-        if y.stimulus_ch1(1,5) ==lens %y.stimulus_ch1(1,3) == dB &&
+        if y.stimulus_ch1(1,5) ==lens && y.stimulus_ch1(1,3) == dB
             unit_file_name = [animal_name 'u00000'];
             unit_file_name = [unit_file_name(1:end-size(num2str(u_list(i)),2)) num2str(u_list(i)) '.mat'];
             x = load(unit_file_name);
