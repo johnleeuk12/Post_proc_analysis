@@ -26,8 +26,8 @@ end
 
 for n = 1:length(N_list_int)
 
-   if  length(unique(Pool{2}(n).xb.stimulus_ch1(:,10)))==1 || ...
-            length(unique(Pool{2}(n).xb.stimulus_ch1(:,22)))==1
+   if  length(unique(Pool{1}(n).xb.stimulus_ch1(:,10)))==1% || ...
+            %length(unique(Pool{1}(n).xb.stimulus_ch1(:,22)))==1
         N_list_int(n) = [];
    end
 end

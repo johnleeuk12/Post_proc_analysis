@@ -1,3 +1,94 @@
+%% VT phee comp PT BF new, 03/07/2021
+
+
+
+N = length(SUrate);
+phee_cf = 7.16;
+X = [];
+X_onset = [];
+X_sust = [];
+X_offset = [];
+black_list = [];
+% black_list = [43, 119];
+%  black_list = [211, 238];
+ana.onset =  [];
+ana.sust = [];
+ana.offset = [];
+PreStim = 300;
+PostStim = 500;
+Stimdur = 2180-PostStim-PreStim;
+
+nid_list = [];
+
+
+[PTresp, ~] = ana_BF(6,3);
+n_list2 = PTresp(:,1);
+n_list1 = [];
+for n =1:N
+    n_list1 = [n_list1 SUrate{n}{1}.nid];
+end
+N_list = intersect(n_list1,n_list2);
+
+
+
+for n = 1:length(N_list)
+    onset=  [];
+    nid = SUrate{n}{1}.nid;
+    if ismember(nid,N_list)
+        if max(SUrate{n}{1}.mean) > 1
+            phee_ind = find(SUrate{n}{1}.xb.stimulus_ch1(:,10) == phee_cf);
+            
+            % compute onset/sustained/offset responses here
+                    for st = 1:length(SUrate{n}{1}.mean)
+                        onset(st) = mean2(SUrate{n}{1}.PSTH{st}(:,PreStim:PreStim+250));
+            %             ana.sust.mean(n,st) = mean2(SUrate{n}{2}.PSTH{st}(:,PreStim+250:PreStim+Stimdur));
+            %             ana.offset.mean(n,st) = mean2(SUrate{n}{2}.PSTH{st}(:,PreStim+Stimdur:PreStim+Stimdur+250));
+                    end
+            %
+            
+            if ~isempty(phee_ind)
+                PT_BF = PTresp(find(PTresp(:,1) == nid),2);
+%                 X = [X; [ PT_BF*1e-3 (SUrate{n}{1}.mean(phee_ind)-mean(SUrate{n}{1}.spont)) nid]]; %/max(SUrate{n}{2}.mean) SUrate{n}{2}.nid]];
+                X = [X; [ PT_BF*1e-3 (onset(phee_ind)-mean(SUrate{n}{1}.spont)) nid]];
+            end
+        end
+    end
+end
+
+
+% X = X_onset;
+
+[B,I] = sort(X(:,1));
+X2 = [B,X(I,2)];
+% [B,I] = sort(X_onset(:,1));
+% X2 = [B,X_onset(I,2)];
+% M2 = movmedian(X2(:,2),5);
+M2 = movmean(X2(:,2),10);
+M = tri_movmean(X2,0.125);
+
+figure(phee_ind)
+hold off
+scatter(X2(:,1),X2(:,2))
+hold on
+plot(M(:,1),M(:,2),'-r');
+% plot(B,M2,'--g');
+xline(7.16,'--k','LineWidth',2)
+xline(phee_cf)
+set(gca, 'xScale', 'log')
+xticks([0 : 3.5:30])
+axis([2 inf -inf inf])
+axis([2 inf -10 10]);
+title([num2str(phee_cf) 'kHz'])
+
+
+% id_test = find(X(:,1)> 6 & X(:,1) <9 & X(:,2)< -0.4);
+% nid_list = X(:,3);
+% SUplot(nid_list,SUrate,Pool,raster);
+
+
+
+
+
 %% Population Analysis .
 
 N_pool = size(Pool,2);
