@@ -62,7 +62,7 @@ for n = 1:length(N_list_int) % n is each neuron
             SUrate{n}{ss}.spont = [];
             SUrate{n}{ss}.raw = [];
             SUrate{n}{ss}.stim = [];
-            
+            SUrate{n}{ss}.pid = [];
             
             ana_code = Pool{ss}(1).xb.analysis_code;
             
@@ -77,12 +77,26 @@ for n = 1:length(N_list_int) % n is each neuron
                 SUrate{n}{ss}.error = [SUrate{n}{ss}.error; std(rate{ss}.stim{p},1,2)/sqrt(nreps)];
                 SUrate{n}{ss}.spont = [ SUrate{n}{ss}.spont; mean(rate{ss}.pre{p},2) ];
                 SUrate{n}{ss}.raw = [ SUrate{n}{ss}.raw; rate{ss}.stim{p}] ;
-                SUrate{n}{ss}.PSTH = {};
                 SUrate{n}{ss}.nid = Pool{ss}(p).neuron_nb;
-                SUrate{n}{ss}.pid = p;
+                SUrate{n}{ss}.pid = [SUrate{n}{ss}.pid, p];
                 SUrate{n}{ss}.xb = Pool{ss}(p).xb;
                 SUrate{n}{ss}.xb.data = [];
                 
+                if r ==1
+                    SUrate{n}{ss}.PSTH = {};
+                    for te = 1:size(rate{ss}.PSTH,2)
+                        if ~isempty(rate{ss}.PSTH{p,te})
+                            SUrate{n}{ss}.PSTH{te}= rate{ss}.PSTH{p,te};
+                        end
+                    end
+                else
+                    te_ind = length(SUrate{n}{ss}.PSTH);
+                    for te = 1:size(rate{ss}.PSTH,2)
+                        if ~isempty(rate{ss}.PSTH{p,te})
+                            SUrate{n}{ss}.PSTH{te+te_ind}= rate{ss}.PSTH{p,te};
+                        end
+                    end
+                end
                 
                 switch ana_code
                     case {1,62}

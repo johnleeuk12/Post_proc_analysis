@@ -82,10 +82,11 @@ end
 
 
 %% OLE and categorization
-
-
+% 03/08/2021
 
 %{ 
+
+
 run PSTH first 
 Training set SD 
 [0 0.25 0.5] is 1
@@ -247,6 +248,11 @@ ylabel('time');
 sfig.EdgeColor = 'none';
 imagesc(test_set,time_axis,filt_im);
 caxis([0,1])
+
+
+
+% end Optimal Linear Estimator
+
 
 %% Neural dynamics
 N = length(SUrate);

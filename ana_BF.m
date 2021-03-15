@@ -3,8 +3,8 @@ function [out, BF_tracks] = ana_BF(H_nb,db_ind)
 %% CF analysis 03/07/2021
 % load('M60F_unit_list_new.mat');
 animal_name = 'M60f';
-% H_nb = 4;
-% db_ind = 2; % 3 is 40db, 2 is 60db 1 is 80 db
+H_nb = 4;
+db_ind = 2; % 3 is 40db, 2 is 60db 1 is 80 db
 
 edges = logspace(3,4.5,25);
 % new_edges = zeros(1,39);
@@ -51,7 +51,7 @@ for t = 1:length(tracks)
             end
         end
     end
-    t_ind = find(out(:,4) == tracks(t));
+    t_ind = find(out(:,5) == tracks(t));
     BF_pool = out(t_ind,2);
     BF_tracks(t,:) = [tracks(t),median(BF_pool)];
 %     histogram(BF_pool,edges);
