@@ -262,6 +262,14 @@ set(gcf, 'Position', [400 200 800 800]);
 phee_list = round([7.16:0.24:9.56]*100)/100;
 X = {};
 tic
+
+good_list_2 = [];
+for n = 1:N
+    if max(SUrate{n}{1}.mean) > 1
+        good_list_2 = [good_list_2,n];
+    end
+end
+
 for p = 1:length(phee_list)
     phee_cf = phee_list(p);
     X{p} = [];
@@ -279,7 +287,7 @@ for p = 1:length(phee_list)
         %Gaussian smoothing
         trial_dur = pre_stim + stim_dur;% + post_stim;
         xs = 1:trial_dur;
-        h = 30;
+        h = 10;
         for i = 1:trial_dur
             ys(i) = gaussian_kern_reg(xs(i),xs,mean(SUrate{n}{1}.PSTH{phee_ind}(:,1:trial_dur),1),h);
         end
@@ -302,7 +310,6 @@ for p = 1:2:11
     T1 = coeff(:,1);
     T2 = coeff(:,2);
     T3 = coeff(:,3);
-    
     pl{p} = plot3(T1,T2,T3,'Color',cmap(p,:));
     hold on
     scatter3(T1(1),T2(1),T3(1),100,cmap(p,:),'*')

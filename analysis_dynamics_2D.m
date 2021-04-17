@@ -14,19 +14,29 @@ N = length(SUrate);
 % test_set =  round([7.46:0.41:9.92]*100)/100;
 
 % Phee CF 
-vc_list1 = round([4.76:0.12:7.16]*100)/100;
-set2 = [4.76, 4.88, 5];
-set1 = [6.92,7.04, 7.16];
-test_set =  round([5.12:0.12:6.8]*100)/100;
+vc_list1 = round([7.16:0.12:9.56]*100)/100;
+set2 = [9.32, 9.44, 9.56];
+set1 = [7.16,7.28, 7.4];
+test_set =  round([7.52:0.12:9.20]*100)/100;
 
+% vc_list1 = round([4.76:0.12:7.16]*100)/100;
+% set2 = [4.76, 4.88, 5];
+% set1 = [6.92, 7.04, 7.16];
+% test_set =  round([5.12:0.12:6.8]*100)/100;
+
+
+% PT or VT?
+
+VT_ind = 8;
 
 
 % find list of neurons that responded to all stim on list. \
 good_list = [];
 for n = 1:N
-    SUrate{n}{1}.stim = SUrate{n}{1}.xb.stimulus_ch1(:,10);
+    SUrate{n}{1}.stim = round(SUrate{n}{1}.xb.stimulus_ch1(:,8))*1e-3; % PT
+%     SUrate{n}{1}.stim = SUrate{n}{1}.xb.stimulus_ch1(:,10); % VT stim
     try
-        if intersect(unique(SUrate{n}{1}.stim(:,1)).',vc_list1) == vc_list1
+        if intersect(round((unique(SUrate{n}{1}.stim(:,1)).')*1e2),round(vc_list1*1e2)) == round(vc_list1*1e2)
             good_list = [good_list,n];
         end
     catch
@@ -61,7 +71,9 @@ for p = 1:length(vc_list1)
 %         vc_ind = intersect(vc_ind1,vc_ind2);
 %         vc_ind = intersect(vc_ind,vc_ind3);
         % case for phees
-        vc_ind = find(SUrate{good_list(n)}{1}.xb.stimulus_ch1(:,10) == vc_cf);
+%         vc_ind = find(SUrate{good_list(n)}{1}.xb.stimulus_ch1(:,VT_ind) == vc_cf);
+        vc_ind = find(round(SUrate{good_list(n)}{1}.xb.stimulus_ch1(:,VT_ind)) == round(vc_cf*1e3));
+
         pre_stim = SUrate{good_list(n)}{1}.xb.pre_stimulus_record_time;
         post_stim = 500;% SUrate{good_list(n)}{1}.xb.post_stimulus_record_time;
         stim_dur = SUrate{good_list(n)}{1}.xb.stimulus_ch1(1,5);
@@ -169,11 +181,11 @@ totalP = 100;
 
 
 lambda = 0.1; %L2 regularization constant
-tic
 W_all = {};
 C_test_all = {};
 
 %%
+tic
 
 goodN = length(good_list);
 parfor p = 1:totalP
@@ -199,7 +211,9 @@ parfor p = 1:totalP
                 %                 vc_ind = vc_ind(1); % change to incorporate all
                 % for phees
                 
-                vc_ind = find(SUrate{good_list(n)}{1}.xb.stimulus_ch1(:,10) == vc_cf);
+                %                 vc_ind = find(SUrate{good_list(n)}{1}.xb.stimulus_ch1(:,10) == vc_cf);
+                vc_ind = find(round(SUrate{good_list(n)}{1}.xb.stimulus_ch1(:,VT_ind)) == round(vc_cf*1e3));
+                
                 R(n,s) =  mean2(SUrate{good_list(n)}{1}.PSTH{vc_ind}(train_ind,t:t+twindow)); %/(norm_fact(n)+5);
                 R(n,s) =  mean2(SUrate{good_list(n)}{1}.PSTH{vc_ind}(train_ind,t:t+twindow)); %/(norm_fact(n)+5);
                 R_test(n,s)= mean2(SUrate{good_list(n)}{1}.PSTH{vc_ind}(test_ind,t:t+twindow)); %/(norm_fact(n)+5));
@@ -259,7 +273,8 @@ parfor p = 1:totalP
                 %                 vc_ind = intersect(vc_ind1,vc_ind2);
                 %                 vc_ind = intersect(vc_ind,vc_ind3);
                 
-                vc_ind = find(SUrate{good_list(n)}{1}.xb.stimulus_ch1(:,10) == vc_cf);
+                %                 vc_ind = find(SUrate{good_list(n)}{1}.xb.stimulus_ch1(:,10) == vc_cf);
+                vc_ind = find(round(SUrate{good_list(n)}{1}.xb.stimulus_ch1(:,VT_ind)) == round(vc_cf*1e3));
                 
                 vc_ind = vc_ind(1); % change to incorporate all
                 %             R(n,s) =  mean2(SUrate{n}{1}.PSTH{phee_ind}(train_ind,t:t+twindow));
@@ -302,7 +317,7 @@ end
 
 
 figure
-D_stim = mean(C_test2(pre_stim+600:pre_stim+stim_dur,:,:),1);
+D_stim = mean(C_test2(pre_stim:pre_stim+stim_dur,:,:),1);
 D_stim_mean = mean(D_stim,3);
 D_stim_err = std(D_stim,[],3);%/sqrt(totalP);
 errorbar(test_set,D_stim_mean,D_stim_err);

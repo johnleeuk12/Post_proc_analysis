@@ -106,6 +106,7 @@ for n = 1:length(N_list)
                 SUrate{n}{s1,s2}.ana.onset.data(st,:) = mean(SUrate{n}{s1,s2}.PSTH{st}(:,200:300),2).';
                 SUrate{n}{s1,s2}.ana.offset1.data(st,:) = mean(SUrate{n}{s1,s2}.PSTH{st}(:,300:400),2).';
                 SUrate{n}{s1,s2}.ana.offset2.data(st,:) = mean(SUrate{n}{s1,s2}.PSTH{st}(:,400:500),2).';
+%                 SUrate{n}{s1,s2}.ana.spont.data = 
             end
             
             % onset

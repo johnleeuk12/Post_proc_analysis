@@ -50,10 +50,10 @@ else
 end
 
 toc
-for i = 2278: 2472
-   unit_list.data{i,8} = 4;
-    unit_list.data{i,9} = 6;
-end
+% for i = 2278: 2472
+%    unit_list.data{i,8} = 4;
+%     unit_list.data{i,9} = 6;
+% end
 
 
 

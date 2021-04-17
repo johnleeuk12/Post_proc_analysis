@@ -6,9 +6,9 @@ rate = {};
 raster = {};
 
 
-% [Pool{1}, rate{1}, raster{1}] = pool_data(1,4,40,100);
+[Pool{1}, rate{1}, raster{1}] = pool_data(1,6,40,1180);
 % [Pool{2}, rate{2}, raster{2}] = pool_data(104,8,40);
-[Pool{1}, rate{1}, raster{1}] = pool_data(2320,6,40);
+% [Pool{1}, rate{1}, raster{1}] = pool_data(2320,4,40);
 % [Pool{4}, rate{4}, raster{4}] = pool_data(62,8,40);
 % [Pool{5}, rate{5}, raster{5}] = pool_data(2343,[12,13],40);
 

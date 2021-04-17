@@ -1,9 +1,13 @@
 %% VT phee comp PT BF new, 03/07/2021
 
 
-
+PTresp = ana_BF(6); 
+%%
 N = length(SUrate);
-phee_cf = 7.16;
+phee_cf =8.6;
+% 7.16 7.4 7.64 7.88 8.12 8.36 8.6 8.84 9.08 9.32 9.56
+% 4.76	5	5.24	5.48	5.72	5.96	6.2	6.44	6.68
+
 X = [];
 X_onset = [];
 X_sust = [];
@@ -21,8 +25,17 @@ Stimdur = 2180-PostStim-PreStim;
 nid_list = [];
 
 
-[PTresp, ~] = ana_BF(6,3);
-n_list2 = PTresp(:,1);
+% [PTresp, ~] = ana_BF(6,3);
+
+% n_list2 = PTresp(:,1);
+
+PT_n_list = PTresp.data{1};
+n_list2 = [];
+for ptn = 1:length(PT_n_list)
+    if ~isempty(PTresp.data{3}{ptn,1}) || ~isempty(PTresp.data{4}{ptn,1})
+        n_list2 = [n_list2; PT_n_list(ptn)];
+    end
+end
 n_list1 = [];
 for n =1:N
     n_list1 = [n_list1 SUrate{n}{1}.nid];
@@ -39,17 +52,35 @@ for n = 1:length(N_list)
             phee_ind = find(SUrate{n}{1}.xb.stimulus_ch1(:,10) == phee_cf);
             
             % compute onset/sustained/offset responses here
-                    for st = 1:length(SUrate{n}{1}.mean)
-                        onset(st) = mean2(SUrate{n}{1}.PSTH{st}(:,PreStim:PreStim+250));
-            %             ana.sust.mean(n,st) = mean2(SUrate{n}{2}.PSTH{st}(:,PreStim+250:PreStim+Stimdur));
-            %             ana.offset.mean(n,st) = mean2(SUrate{n}{2}.PSTH{st}(:,PreStim+Stimdur:PreStim+Stimdur+250));
-                    end
+            for st = 1:length(SUrate{n}{1}.mean)
+                onset(st) = mean2(SUrate{n}{1}.PSTH{st}(:,PreStim:PreStim+250));
+                onset(st) = mean2(SUrate{n}{1}.PSTH{st}(:,PreStim:PreStim+Stimdur));
+                
+                %             ana.sust.mean(n,st) = mean2(SUrate{n}{2}.PSTH{st}(:,PreStim+250:PreStim+Stimdur));
+                %             ana.offset.mean(n,st) = mean2(SUrate{n}{2}.PSTH{st}(:,PreStim+Stimdur:PreStim+Stimdur+250));
+            end
             %
             
             if ~isempty(phee_ind)
-                PT_BF = PTresp(find(PTresp(:,1) == nid),2);
-%                 X = [X; [ PT_BF*1e-3 (SUrate{n}{1}.mean(phee_ind)-mean(SUrate{n}{1}.spont)) nid]]; %/max(SUrate{n}{2}.mean) SUrate{n}{2}.nid]];
-                X = [X; [ PT_BF*1e-3 (onset(phee_ind)-mean(SUrate{n}{1}.spont)) nid]];
+                ptn = find(PT_n_list == nid);
+                PT_BF = [];
+                if ~isempty(PTresp.data{3}{ptn,1})
+                    PT_BF = [PT_BF PTresp.data{3}{ptn,1}(1,1)];
+                end
+                if ~isempty(PTresp.data{4}{ptn,1})
+                    PT_BF = [PT_BF PTresp.data{4}{ptn,1}(1,1)];
+                end
+                %                 PT_BF = PTresp(find(PT_n_list == nid),2);
+                %                 X = [X; [ PT_BF*1e-3 (SUrate{n}{1}.mean(phee_ind)-mean(SUrate{n}{1}.spont)) nid]]; %/max(SUrate{n}{2}.mean) SUrate{n}{2}.nid]];
+                
+                for b = 1:length(PT_BF)
+                    norm_fac = range(onset)+5;
+                                        X = [X; [ PT_BF(b)*1e-3 (onset(phee_ind)-mean(SUrate{n}{1}.spont)) nid]];
+%                     X = [X; [ PT_BF(b)*1e-3 (onset(phee_ind)-mean(SUrate{n}{1}.spont))/norm_fac nid]];
+%                     X = [X; [ PT_BF(b)*1e-3 (onset(phee_ind)-mean(SUrate{n}{1}.spont)) nid]];
+                    
+                    
+                end
             end
         end
     end
@@ -71,13 +102,13 @@ hold off
 scatter(X2(:,1),X2(:,2))
 hold on
 plot(M(:,1),M(:,2),'-r');
-% plot(B,M2,'--g');
+plot(B,M2,'--g');
 xline(7.16,'--k','LineWidth',2)
 xline(phee_cf)
 set(gca, 'xScale', 'log')
 xticks([0 : 3.5:30])
-axis([2 inf -inf inf])
-axis([2 inf -10 10]);
+% axis([2 inf -1 1])
+axis([2 inf -10 inf]);
 title([num2str(phee_cf) 'kHz'])
 
 
