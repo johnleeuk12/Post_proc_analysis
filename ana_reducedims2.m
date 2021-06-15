@@ -1,4 +1,4 @@
-function [projs mse like lat, allprojs] = ana_reducedims(D, dims)  
+function [newD, C, lat] = ana_reducedims2(D, dims,smooth_bin)  
 
 addpath('C:\Users\John.Lee\Documents\GitHub\DataHigh\util');
 addpath('C:\Users\John.Lee\Documents\GitHub\DataHigh\gpfa\util');
@@ -7,7 +7,7 @@ addpath('util');
 % dims = 1:10;
 
 % remove low firing rate neurons
-mean_thresh= 1;
+mean_thresh= 0.5;
 m = mean([D.data],2)*1e3;
 keep_neurons = m >= mean_thresh;
 
@@ -16,6 +16,7 @@ keep_neurons = m >= mean_thresh;
 for itrial = 1:length(D)
     D(itrial).data = D(itrial).data(keep_neurons,:);
 end
+
 
 % find minimum trial length
 min_trial_length = inf;
@@ -46,15 +47,10 @@ end
 % Trial-average neural trajectories
 D = trial_average(D);
 
-
-
-
-
-%
 % Smooth data if necessary (automatically zero if GPFA selected)
 %     if get(handles.kern_slider,'Value') ~= 0
 
-smooth_bin = 10; % ['Smoothing kernel width: '  num2str(value) 'ms']);
+% smooth_bin = 20; % ['Smoothing kernel width: '  num2str(value) 'ms']);
 
 if smooth_bin ~= 1
     for i = 1:length(D)
@@ -62,81 +58,34 @@ if smooth_bin ~= 1
     end
 end
 %
-lat   = [];
 
-like_fold = 0;
-mse_fold = 0;  % these store the likelihood and mse for one fold
-like  = zeros(1,length(dims));
-mse   = zeros(1,length(dims)); % keeps a running total of likelihood and mse
-projs = cell(1,length(dims));
-allprojs = cell(1,length(dims));
+[newD, C, lat] = PCAreduce(D,dims);
 
-% prepare cross-validation technique
-% break up into folds
-cv_trials = randperm(length(D));
-mask = false(1, length(D));
-fold_indices = floor(linspace(1,length(D)+1, 4));  %splits it up into three chunks
+end
 
-for idim = 1 :length(dims)
-    for ifold = 1:3 % three-fold cross-validation
-        fprintf(['Cross validating... dim ' ...
-            num2str(dims(idim)) ' fold ' num2str(ifold) '\n'])
-        % prepare masks:
-        % test_mask isolates a single fold, train_mask takes the rest
-        test_mask = mask;
-        test_mask(cv_trials(fold_indices(ifold):fold_indices(ifold+1)-1)) = true;
-        train_mask = ~test_mask;
-        [mse_fold, p,lat,ap] = PCACV(D, dims(idim), ifold, train_mask, test_mask);
-        
-        
-        % add up the likelihood and LNO errors across folds
-        mse(idim) = mse(idim) + mse_fold;
-        like(idim) = like(idim) + like_fold;
-        
-        
-        
-        if (ifold == 1)
-            projs{idim} = p;
-%             allprojs{idim} = ap.';
-        end
+%% Helper functions
+
+
+function [newD, C, lat] = PCAreduce(D,dims)
+% PCAREDUCE Internal function for PCA
+%   PCAREDUCE(D,DIMS) returns a structure of the same form as D, except
+%   the data has been reduced with PCA. All conditions and trials are
+%   considered together to get the best joint reduction.
+
+    % Agglomerate all of the conditions, and perform PCA
+    alldata = [D.data];
+    [u sc lat] = pca(alldata');
+
+    % For each condition, store the reduced version of each data vector
+    index = 0;
+    for i=1:length(D)
+        D(i).data = sc(index + (1:size(D(i).data,2)),1:dims)';
+        index = index + size(D(i).data,2);
     end
+    newD = D;
+    C = u(:,1:dims);
+    lat = cumsum(lat(1:dims)) ./ sum(lat(1:dims));  % eigenvalues
 end
-
-% [u sc lat] = pca([D.data]');
-end
-
-
-% -------- Helper Functions
-function [mse, projs, lat, allprojs] = PCACV(D, dim, fold, train_mask, test_mask)
-
-    [train_data, test_data, forProj] = prepare_cv_data(D, train_mask, test_mask);
-    [u, sc, lat] = pca(train_data');
-    params.L = u(:,1:dim);
-    params.d = mean(train_data,2);
-    projs = [];
-    allprojs = [];
-    if (fold == 1 && dim > 1) % keep the projections of first fold
-        % All of the data projected into low-D space
-        allprojs = sc(:,1:dim)';
-
-        if (isstruct(forProj)) % trajectories
-            index = 1;
-            for itrial=1:length(forProj)
-                projs(itrial).data = allprojs(:,index:index+size(forProj(itrial).data,2)-1);
-                index = index + size(forProj(itrial).data,2);
-            end
-            [projs(1:end).type] = deal('traj');
-        else   %clusters
-            projs(1).data = allprojs;
-            projs(1).type = 'state';
-        end
-    end
-
-    cvdata = cosmoother_pca(test_data,params);
-    mse = sum(sum((cvdata-test_data).^2));
-
-end
-
 
 function newD = trial_average(D)
 % Helper function
@@ -191,23 +140,3 @@ function newD = trial_average(D)
 
 end
 
-function [train_data, test_data, forProj] = prepare_cv_data(D, train_mask, test_mask)
-% helper function to prepare the cv data
-% finds the train and test data, as well as the struct for forProjs
-% This is useful to handle both trajs and states
-
-    train_data = [];
-    test_data = [];
-%     if (strcmp(D(1).type, 'traj')) % data is trajectories
-        train_data = [D(train_mask).data];
-        test_data = [D(test_mask).data];
-        forProj = D(train_mask);
-%     else  % data is clusters
-%         data = [D.data];
-%         train_data = data(:,train_mask);
-%         test_data = data(:,test_mask);
-%         forProj = data(:,train_mask);
-%     end
-end
-            
-            

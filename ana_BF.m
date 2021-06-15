@@ -33,6 +33,8 @@ hole_ind = find([neurons_loc_tag.hole_nb] == H_nb);
 tracks = unique([neurons_loc_tag(hole_ind).track_nb]);
 N_list = [neurons_loc_tag.neuron_nb];
 BF_tracks = [];
+tuning = {};
+
 % figure
 db_lens = 0;
 for t = 1:length(tracks)
@@ -42,51 +44,78 @@ for t = 1:length(tracks)
         PTname= 'PTn0000';
         PTname = [PTname(1:end-length(num2str(nid))) num2str(nid) '.mat'];
         load(PTname);
-        ana_PT = filename; %currently loaded file is filename. change afterwards
+        try 
+            ana_PT = filename; %currently loaded file is filename. change afterwards
+        catch
+        end
         db_count = 0; % counter to see if there's at least one non-empty BF_ind
         out_vec = {};
+        out_stim = {};
         % figures
         if figure_on ==  1
             fi = figure;
             set(fi, 'Position', [100 200 2400 660]);
-            sgtitle(['unit' num2str(nid) ' H4' 'T' num2str(tracks(t))])
+            sgtitle(['unit' num2str(nid) ' H' num2str(H_nb) 'T' num2str(tracks(t))])
         end
         % figures end
         db_count2 = 0;
         %         db_count3 = 0;
-        for db_ind = 1:4
-            out_vec{db_ind} = [];
+        for db_ind1 = 1:4
+            out_vec{db_ind1} = [];
+            tuning{db_ind1} = [];
+            out_stim{db_ind1} = [];
+            
             try
-                if ~isempty(ana_PT{db_ind})
+                if ~isempty(ana_PT{1,db_ind1})
+                    try 
+                        if ~isempty(ana_PT{2,db_ind1})
+                            stim_freq1 = ana_PT{1,db_ind1}.xb.stimulus_ch1(:,8);
+                            stim_freq2 = ana_PT{2,db_ind1}.xb.stimulus_ch1(:,8);
+                            
+                            if length(stim_freq2)> length(stim_freq1)
+                                db_ind2 = 2;
+                            else
+                                db_ind2 = 1;
+                            end
+                        else
+                            db_ind2 = 1;
+                        end
+                    catch
+                        db_ind2 = 1;
+                    end
+                            
                     db_count2 = 1;
+                    stim_freq = ana_PT{db_ind2,db_ind1}.xb.stimulus_ch1(:,8);
                     
-
+                    
                     
                     X = [];
-                    for st = 1:41
+                    for st = 1:length(stim_freq)
                         %                         X = [X; mean(ana_PT{db_ind}.PSTH{st},1)-mean(ana_PT{db_ind}.spont)];
-                        X = [X; mean(ana_PT{db_ind}.PSTH{st},1)]; %-mean(ana_PT{db_ind}.spont)]
+                        X = [X; mean(ana_PT{db_ind2,db_ind1}.PSTH{st},1)]; %-mean(ana_PT{db_ind}.spont)]
                         
                     end
                     
-                    %                     spont_std = std2(X2(:,1:150));
-                    XX = smoothdata(X,2,'gaussian',50);
-                    %                     X2 = imbilatfilt(XX,(spont_std^2)*2,2);
-                    X2 = imgaussfilt(XX,2);
+%                     spont_std = std2(X2(:,1:150));
+%                     XX = smoothdata(X,2,'gaussian',50);
+                    %                                         X2 = imbilatfilt(XX,(spont_std^2)*2,2);
+                    tuning{db_ind1} = X;
+                    
+                    X2 = imgaussfilt(X,[3,20],'Padding',0); %,'Padding','circular');
                     X2 = X2-mean2(X2(:,1:150)); % removing spont rate
                     [BF_ind, pos, ~]  = find(X2 == max(max(X2(:,200:end))));
 
                     % checking whether peak is significant
-                    if mean2(X(:,200:end)) < 1 % average firing rate is below 0.5
-                        BF_ind = [];
+%                     if mean2(X(:,200:end)) < 1 % average firing rate after onset is below 1
+%                         BF_ind = [];
 %                     if mean2(abs(X(:,200:end)-mean2(X(:,1:150))))<1
-                    elseif X2(BF_ind,pos) < std2(X2(:,1:150))*2
+                    if X2(BF_ind,pos) < std2(X2(:,1:150))*2
                         BF_ind = [];
                     end
                     
                     
                     if figure_on == 1
-                        subplot(1,4,db_ind)
+                        subplot(1,4,db_ind1)
                         
                         % creating figures
                         imagesc(X2);
@@ -97,7 +126,7 @@ for t = 1:length(tracks)
                         end
                         
                         caxis([min(min(X2)),max(max(X2))])
-                        title([out.tags{db_ind+1} 'db'])
+                        title([out.tags{db_ind1+1} 'db'])
                     end
                     % creating figures end
                     
@@ -108,12 +137,14 @@ for t = 1:length(tracks)
                     if ~isempty(BF_ind)
                         db_count = 1;
                         
-                        stim_freq = ana_PT{db_ind}.xb.stimulus_ch1(:,8);
                         for b = 1:length(BF_ind)
-                            out_vec{db_ind} = [out_vec{db_ind}; stim_freq(BF_ind(b))]; %, mean(FR(BF_ind(b),:))]];
+                            out_vec{db_ind1} = [out_vec{db_ind1}; stim_freq(BF_ind(b))]; %, mean(FR(BF_ind(b),:))]];
                             %                         out_vec = [out_vec; [nid, stim_freq(BF_ind(b)),mean(FR(BF_ind(b),:)),H_nb,tracks(t)]];
                         end
+                        
                     end
+                    out_stim{db_ind1} = stim_freq;
+                    
                 end
             catch
             end
@@ -130,14 +161,17 @@ for t = 1:length(tracks)
         if db_count ~= 0
             db_lens = db_lens+1;
             out.data{1}(db_lens,1) = nid;
-            for db_ind = 1:4
-                out.data{db_ind+1}{db_lens,1} = out_vec{db_ind};
+            for db_ind1 = 1:4
+                out.data{db_ind1+1}{db_lens,1} = out_vec{db_ind1};
+                out.data{db_ind1+1}{db_lens,2} = tuning{db_ind1};
+                out.data{db_ind1+1}{db_lens,3} = out_stim{db_ind1}; 
             end
             out.data{6}(db_lens,:) = [H_nb, tracks(t)];
+            
         end
         
         
-%       test=  1;
+      test=  1;
       
     end
     

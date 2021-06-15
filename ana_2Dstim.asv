@@ -1,4 +1,4 @@
-function SUrate = ana_2Dstim(Pool, rate, raster, figure_on, VT_name)
+function SUrate = ana_2Dstim(Pool, rate, raster, figure_on)
 %%
 %{
 Pooling data for 2D stim or stimuli sets that run across multiple
@@ -26,13 +26,14 @@ end
 switch VT_name
     case {'trill1', 'trill2'}
         V_ind = 10;
+        %% for trills
         st_range.cf = 2.54:0.41:10.74; %range for cf
         st_range.fmr = 3.06:2.69:56.86; %range for fm rate
         st_range.fmd = 50:90:1400;
     case 'twitter'
         V_ind = 9;
 end
-%%
+
 
 
 for n = 1:length(N_list_int)
@@ -118,11 +119,7 @@ for n = 1:length(N_list_int) % n is each neuron
                         SUrate{n}{ss}.stim_tags = {{'cf'},{'fmrate'},{'fmdepth'}};
                         SUrate{n}{ss}.stim = [SUrate{n}{ss}.stim; SUrate{n}{ss}.xb.stimulus_ch1(:,[stid_1, stid_2, stid_3])];
                     case 2367 % Twitter
-                        stid_1 = 9;
-                        stid_2 = 12;
-                        stid_3 = 5;
-                        SUrate{n}{ss}.stim_tags = {{'cf'},{'IPI'},{'Stim_dur'}};
-                        SUrate{n}{ss}.stim = [SUrate{n}{ss}.stim; SUrate{n}{ss}.xb.stimulus_ch1(:,[stid_1, stid_2, stid_3])];
+                        stid_1
                 end
             end
             

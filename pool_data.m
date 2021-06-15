@@ -50,10 +50,17 @@ else
 end
 
 toc
-% for i = 2278: 2472
-%    unit_list.data{i,8} = 4;
-%     unit_list.data{i,9} = 6;
-% end
+
+% use the following code to correct errors in hole and track number 
+for i = 2278: 2472
+   unit_list.data{i,8} = 4;
+    unit_list.data{i,9} = 6;
+end
+
+for i = 8849: 8881
+   unit_list.data{i,8} = 5;
+    unit_list.data{i,9} = 4;
+end
 
 
 
