@@ -43,6 +43,7 @@ for t = 1:length(tracks)
         nid = sub_n_list(n);
         PTname= 'PTn0000';
         PTname = [PTname(1:end-length(num2str(nid))) num2str(nid) '.mat'];
+        try
         load(PTname);
         try 
             ana_PT = filename; %currently loaded file is filename. change afterwards
@@ -170,8 +171,8 @@ for t = 1:length(tracks)
             
         end
         
-        
-      test=  1;
+        catch
+        end
       
     end
     

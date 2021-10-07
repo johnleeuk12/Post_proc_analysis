@@ -1,4 +1,4 @@
-function [newD, C, lat] = ana_reducedims2(D, dims,smooth_bin)  
+function [newD, C, lat,explained,keep_neurons] = ana_reducedims2(D, dims,smooth_bin,low_f)  
 
 addpath('C:\Users\John.Lee\Documents\GitHub\DataHigh\util');
 addpath('C:\Users\John.Lee\Documents\GitHub\DataHigh\gpfa\util');
@@ -7,7 +7,7 @@ addpath('util');
 % dims = 1:10;
 
 % remove low firing rate neurons
-mean_thresh= 0.5;
+mean_thresh= low_f;
 m = mean([D.data],2)*1e3;
 keep_neurons = m >= mean_thresh;
 
@@ -30,7 +30,7 @@ binWidth =min(20, min_trial_length);
 use_sqrt = 0;
 
 
-
+% gather spikes in 20ms bins. 
 if (binWidth ~= 1 || use_sqrt)
     [d(1:length(D)).spikes] = deal(D.data);
     for itrial = 1:length(D)
@@ -47,6 +47,7 @@ end
 % Trial-average neural trajectories
 D = trial_average(D);
 
+D = normalize_D(D);
 % Smooth data if necessary (automatically zero if GPFA selected)
 %     if get(handles.kern_slider,'Value') ~= 0
 
@@ -59,14 +60,14 @@ if smooth_bin ~= 1
 end
 %
 
-[newD, C, lat] = PCAreduce(D,dims);
+[newD, C, lat,explained] = PCAreduce(D,dims);
 
 end
 
 %% Helper functions
 
 
-function [newD, C, lat] = PCAreduce(D,dims)
+function [newD, C, lat, explained] = PCAreduce(D,dims)
 % PCAREDUCE Internal function for PCA
 %   PCAREDUCE(D,DIMS) returns a structure of the same form as D, except
 %   the data has been reduced with PCA. All conditions and trials are
@@ -74,7 +75,7 @@ function [newD, C, lat] = PCAreduce(D,dims)
 
     % Agglomerate all of the conditions, and perform PCA
     alldata = [D.data];
-    [u sc lat] = pca(alldata');
+    [u, sc, lat,~,explained] = pca(alldata');
 
     % For each condition, store the reduced version of each data vector
     index = 0;
@@ -85,6 +86,25 @@ function [newD, C, lat] = PCAreduce(D,dims)
     newD = D;
     C = u(:,1:dims);
     lat = cumsum(lat(1:dims)) ./ sum(lat(1:dims));  % eigenvalues
+end
+
+function newD = normalize_D(D)
+    % Soft normalization
+    N = size(D(1).data,1);
+
+    for n = 1:N
+        T = zeros(length(D),size(D(1).data,2));
+        for c = 1:length(D)
+            T(c,:) = D(c).data(n,:);
+        end
+
+        for c = 1:length(D)
+            D(c).data(n,:) = D(c).data(n,:)-mean(T,1);
+        end
+
+    end
+
+    newD = D;
 end
 
 function newD = trial_average(D)

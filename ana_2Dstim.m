@@ -71,6 +71,10 @@ for n = 1:length(N_list_int) % n is each neuron
             SUrate{n}{ss}.raw = [];
             SUrate{n}{ss}.stim = [];
             SUrate{n}{ss}.pid = [];
+            SUrate{n}{ss}.raster = {};
+            SUrate{n}{ss}.raster.stim = [];
+            SUrate{n}{ss}.raster.rep = [];
+            SUrate{n}{ss}.raster.spikes = [];
             
             ana_code = Pool{ss}(1).xb.analysis_code;
             
@@ -90,6 +94,7 @@ for n = 1:length(N_list_int) % n is each neuron
                 SUrate{n}{ss}.xb = Pool{ss}(p).xb;
                 SUrate{n}{ss}.xb.data = [];
                 
+
                 if r ==1
                     SUrate{n}{ss}.PSTH = {};
                     for te = 1:size(rate{ss}.PSTH,2)
@@ -97,6 +102,10 @@ for n = 1:length(N_list_int) % n is each neuron
                             SUrate{n}{ss}.PSTH{te}= rate{ss}.PSTH{p,te};
                         end
                     end
+                    SUrate{n}{ss}.raster.stim = raster{1}.stim{p};
+                    SUrate{n}{ss}.raster.rep = raster{1}.rep{p};
+                    SUrate{n}{ss}.raster.spikes = raster{1}.spikes{p};
+                    
                 else
                     te_ind = length(SUrate{n}{ss}.PSTH);
                     for te = 1:size(rate{ss}.PSTH,2)
@@ -104,6 +113,9 @@ for n = 1:length(N_list_int) % n is each neuron
                             SUrate{n}{ss}.PSTH{te+te_ind}= rate{ss}.PSTH{p,te};
                         end
                     end
+                    SUrate{n}{ss}.raster.stim = [SUrate{n}{ss}.raster.stim, raster{1}.stim{p}+Pool{1}(rec_list{ss}(1)).xb.nstim];
+                    SUrate{n}{ss}.raster.rep = [SUrate{n}{ss}.raster.rep, raster{1}.rep{p}];
+                    SUrate{n}{ss}.raster.spikes = [SUrate{n}{ss}.raster.spikes, raster{1}.spikes{p}];
                 end
                 
                 switch ana_code

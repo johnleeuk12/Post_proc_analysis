@@ -6,19 +6,24 @@ rate = {};
 raster = {};
 
 
-% [Pool{1}, rate{1}, raster{1}] = pool_data(1,6,40,1180);
+[Pool{1}, rate{1}, raster{1}] = pool_data(1,[5,6,15,16],40,1180);
 % [Pool{2}, rate{2}, raster{2}] = pool_data(104,8,40);
-[Pool{1}, rate{1}, raster{1}] = pool_data(2367,[4,11,14],40);
+% [Pool{1}, rate{1}, raster{1}] = pool_data(2335,[4,10,11,14],40);
 % [Pool{4}, rate{4}, raster{4}] = pool_data(62,8,40);
 % [Pool{5}, rate{5}, raster{5}] = pool_data(2343,[12,13],40);
 
 pause(0.1)
+
 SUrate = {};
-% SUrate = get_tuning(Pool,rate,raster,0);
+SUrate = get_tuning(Pool,rate,raster,0);
 
-SUrate = ana_2Dstim(Pool,rate,raster,0,'twitter');
+% SUrate = ana_2Dstim(Pool,rate,raster,0,'trill1');
+
+%%
 % close all
-
+% CHANGE NAME %
+save('E:\DATA\ana_population\Dynamics_SUrate\PT_A1.mat','SUrate','-v7.3','-nocompression');
+% save('E:\DATA\ana_population\Dynamics_Dtraj\Phee_low_AL.mat','DD','-v7.3','-nocompression');
 %% Extracting waveforms directly from units
 
 
