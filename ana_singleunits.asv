@@ -27,10 +27,10 @@ switch VT_code
 end
 %% 2. select units with significant response 
 
-tpoint3 = PreStim + stim_dur   ;
-tpoint4 = tpoint3 + 300;
+tpoint3 = PreStim + stim_dur + 100  ;
+tpoint4 = tpoint3 + 200;
 tpoint1 = PreStim;
-tpoint2 = tpoint1 + 300;
+tpoint2 = tpoint1 + 200;
 % tpoint1 = PreStim+100;
 % tpoint2 = tpoint1 + stim_dur;
 tdur1 = tpoint2-tpoint1;
@@ -64,7 +64,7 @@ for n = 1:length(SU_ind)
     DR_mean = mean(DR,2);
 %     DR_mean = movmean(DR_mean,3);
     [~, ind] = max(DR_mean);
-    std_thresh = mean(SUrate{SU_ind(n)}{1}.spont) + 2*std(SUrate{SU_ind(n)}{1}.spont);
+    std_thresh = mean(SUrate{SU_ind(n)}{1}.spont) + 1*std(SUrate{SU_ind(n)}{1}.spont);
 
 %     std_thresh = 1*std(SUrate{SU_ind(n)}{1}.spont);
     if ind == length(DR_mean)
@@ -87,10 +87,10 @@ for n = 1:length(SU_ind)
     end
 end
 
-peak_ind2 = abs(mat_peak_ind-21);
+peak_ind2 = abs(mat_peak_ind-20);
 
-[B, I] = sort(peak_ind2);
-B = [B, DR_peak(I,:)];
+[B,
+
 % scatter(peak_ind2,DR_peak(:,2))
 % DR_peak3 = DR_peak(:,2)./peak_ind2;
 % scatter(peak_ind2,DR_peak3)
@@ -273,7 +273,6 @@ for p = 1:length(g)
     elseif g(p) == 6
         g(p) = 5;
     end
-    if DR_peak
 end
 figure(56)
 boxplot(DR_peak(:,2),g)

@@ -89,7 +89,7 @@ function [newD, C, lat, explained] = PCAreduce(D,dims)
 end
 
 function newD = normalize_D(D)
-    % Soft normalization
+    % removing common responses to enhance difference
     N = size(D(1).data,1);
 
     for n = 1:N
@@ -99,9 +99,12 @@ function newD = normalize_D(D)
         end
 
         for c = 1:length(D)
-            D(c).data(n,:) = D(c).data(n,:)-mean(T,1);
+            
+            % without soft normalization
+%             D(c).data(n,:) = D(c).data(n,:)-mean(T,1); 
+            % with normalization
+            D(c).data(n,:) = (D(c).data(n,:)-mean(T,1))/max(max(abs(T-mean(T,1)))); 
         end
-
     end
 
     newD = D;

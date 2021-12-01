@@ -4,7 +4,7 @@ function [Pool, rate, raster] = pool_data(a_code,hole_number,varargin)
 %% Comments 
 % If a_code is 1, vargargin{1} should be dB attenuation (20,40,60)
 
-animal_name = 'M60F';
+animal_name = 'M160E';
 addpath(fullfile('D:\DATA', filesep, animal_name, filesep,'Units')); % path to Units
 addpath(fullfile('D:\DATA', filesep, animal_name, filesep,'Experiments')); %path to xbz files
 load([animal_name '_neurons_list.mat']);
@@ -51,18 +51,18 @@ end
 
 toc
 
-% use the following code to correct errors in hole and track number 
-for i = 2278: 2472
-   unit_list.data{i,8} = 4;
-    unit_list.data{i,9} = 6;
-end
-
-for i = 8849: 8881
-   unit_list.data{i,8} = 5;
-    unit_list.data{i,9} = 4;
-end
-
-
+% use the following code to correct errors in hole and track number in M60F
+% for i = 2278: 2472
+%    unit_list.data{i,8} = 4;
+%     unit_list.data{i,9} = 6;
+% end
+% 
+% for i = 8849: 8881
+%    unit_list.data{i,8} = 5;
+%     unit_list.data{i,9} = 4;
+% end
+% 
+% 
 
 
 

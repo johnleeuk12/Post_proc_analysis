@@ -80,14 +80,18 @@ switch vocal_type
         end
     case 21
         vc_list1 = round([5.82:0.41:10.74]*100)/100;
-        vc_fmr = 29.96; % change here to compare
+%         vc_fmr = 29.96; % change here to compare
 %         vc_fmr = 32.65;
+%         vc_fmr = 43.41;
+        vc_fmr = 51.48;
         stim_dur = 406;
         nreps = 10;
         
     case 22
         vc_list1 = round([2.54:0.41:7.46]*100)/100;
-        vc_fmr = 29.96; % change here to compare
+        %         vc_fmr = 29.96; % change here to compare
+        vc_fmr = 32.65;
+        %         vc_fmr = 43.41;
         stim_dur = 406;
         nreps = 10;
         
@@ -135,9 +139,11 @@ for n = 1:NN
                     good_list_nid = [good_list_nid, SUrate{n}{1}.nid];
                 case {21, 22}
                     if length(unique(SUrate{n}{1}.stim(:,3))) ==1 % fm depth has 1 value
-                        good_list = [good_list,n];
-                        good_list_pid = [good_list_pid, SUrate{n}{1}.pid];
-                        good_list_nid = [good_list_nid, SUrate{n}{1}.nid];
+                        if size(SUrate{n}{1}.raw,2) >= nreps
+                            good_list = [good_list,n];
+                            good_list_pid = [good_list_pid, SUrate{n}{1}.pid];
+                            good_list_nid = [good_list_nid, SUrate{n}{1}.nid];
+                        end
                     end
                 case {23,24}
                     if length(unique(SUrate{n}{1}.stim(:,2))) ==1 % fm rate  has 1 value

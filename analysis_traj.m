@@ -42,7 +42,7 @@ switch VT_code
     case 22
         stim_dur = 406;
         stim_num = 13;
-        stim_set = 2.95:0.41:7.46;
+        stim_set = 2.54:0.41:7.46;
         zero_ind = 11;
     case 31
         %         Dtraj_old = Dtraj;
@@ -69,18 +69,21 @@ trial_dur = stim_dur+PostStim+ PreStim;
 
 nrep = 10;
 PSTH = zeros(stim_num,trial_dur);
-for st = 1:2:stim_num
+
+keep_neurons_ind = find(keep_neurons == 1);
+
+for st = 1:stim_num
     cumu_data = [];
     for r = 1:nrep
-    cumu_data = [cumu_data; mean(DD(r+(st-1)*nrep).data,1)];
+    cumu_data = [cumu_data; mean(DD(r+(st-1)*nrep).data(keep_neurons_ind,:),1)];
     end
-    PSTH(st,:) = smoothdata(mean(cumu_data,1),'gaussian',100);
+    PSTH(st,:) = smoothdata(mean(cumu_data,1),'gaussian',200);
 end
-% cmap = parula(stim_num);
-cmap = flip(parula(stim_num));
+cmap = parula(stim_num);
+% cmap = flip(parula(stim_num));
 figure(53)
 for st = 1:2:stim_num
-    plot([1:trial_dur]-PreStim,PSTH(st,:)*1e3,'Color',cmap(st,:))
+    plot([1:trial_dur]-PreStim,PSTH(st,:)*1e3,'Color',cmap(st,:),'LineWidth',2)
     hold on
 end
 axis([-PreStim, trial_dur-PreStim, -inf, inf])
@@ -90,10 +93,10 @@ hold off
 figure(30)
 % cmap = flip(parula(stim_num));
 cmap = parula(stim_num);
-for pc = 1:10
-    subplot(2,5,pc)
+for pc = 1:5
+    subplot(1,5,pc)
     for st = 1:stim_num
-        plot(1:length(Dtraj(st).data),smoothdata(Dtraj(st).data(pc,:),'gaussian',2),'Color',cmap(st,:));
+        plot(1:length(Dtraj(st).data),smoothdata(Dtraj(st).data(pc,:),'gaussian',15),'Color',cmap(st,:));
         hold on
     end
 %     xline(15);
@@ -108,7 +111,7 @@ end
 % else_ind = 1:stim_num;
 % else_ind(zero_ind) = [];
 X = {};
-for pc = 1:5
+for pc = 1:3
     X{pc}.data = zeros(stim_num,length(Dtraj(st).data));
     for st = 1:stim_num
         for t = 1:length(Dtraj(st).data)
@@ -117,9 +120,10 @@ for pc = 1:5
     end
     X{pc}.data = X{pc}.data/(max(max(X{pc}.data))-min(min(X{pc}.data)));
     fi = figure(pc);
-    set(fi, 'Position', [500 400 1500 800]);
+    set(fi, 'Position', [500 400 1500 600]);
     subplot(1,2,1)
     imagesc(stim_set,linspace(-300,trial_dur-300,length(Dtraj(st).data)),X{pc}.data.')
+    colormap(parula)
     title(num2str(pc))
     colorbar
     drawnow
@@ -139,29 +143,30 @@ epoch_starts = ceil(Dtraj(1).epochStarts/20);
 
 x_axis = stim_set;
 
-for pc = 1:5
+for pc = 1:3
     %     subplot(2,4,pc)
     figure(pc);
     subplot(1,2,2)
     X{pc}.pre = mean(mean(X{pc}.data(:,1:epoch_starts(2)-1),2));
-    X{pc}.onset = mean(X{pc}.data(:,epoch_starts(2):epoch_starts(2)+5),2);
-    X{pc}.mid = mean(X{pc}.data(:,epoch_starts(2)+10:epoch_starts(3)-5),2);
-    X{pc}.end = mean(X{pc}.data(:,epoch_starts(3):epoch_starts(3)+10),2);
-    X{pc}.offset = mean(X{pc}.data(:,epoch_starts(3)+10:epoch_starts(3)+20),2);
-
-
-    plot(x_axis, X{pc}.onset)
+    X{pc}.onset = mean(X{pc}.data(:,epoch_starts(2)+5:epoch_starts(3)),2);
+    %     X{pc}.mid = mean(X{pc}.data(:,epoch_starts(2)+10:epoch_starts(3)-5),2);
+    %     X{pc}.end = mean(X{pc}.data(:,epoch_starts(3):epoch_starts(3)+10),2);
+    X{pc}.offset = mean(X{pc}.data(:,epoch_starts(3)+5:epoch_starts(3)+15),2);
+    
+    
+    plot(x_axis, X{pc}.onset,'-g','LineWidth',2)
     hold on
-    plot(x_axis, X{pc}.mid)
-    plot(x_axis, X{pc}.end)
-    plot(x_axis, X{pc}.offset)
+    %     plot(x_axis, X{pc}.mid)
+    %     plot(x_axis, X{pc}.end)
+    plot(x_axis, X{pc}.offset,'-r','LineWidth',2)
     yline(X{pc}.pre,'--k');
-
+    
     title(num2str(pc))
     axis([-inf,inf,0,1])
     hold off
     drawnow
-    legend({'onset','mid','end','offset'})
+    %     legend({'onset','mid','end','offset'})
+    legend('onset','offset')
 end
 
 
@@ -207,12 +212,13 @@ tpoint2 = tpoint1 + 400 ;
 tdur = tpoint2-tpoint1;
 
 
-for nn = Sel_nidPC
+% for nn = Sel_nidPC
+for nn = 1:length(Sel_nid_all)
     %     nn = Sel_nid(21);
     
     figure(50)
     for n = 1:NN
-        if SUrate{n}{1}.nid == nn
+        if SUrate{n}{1}.nid == Sel_nid_all(nn)
             
             DR = zeros(length(SUrate{n}{1}.mean),tdur+1);
             for st = 1:length(SUrate{n}{1}.mean)
@@ -226,7 +232,7 @@ for nn = Sel_nidPC
             end
             
             PSTH2 = imgaussfilt(nPSTH,[3,20],'Padding',0);
-            subplot(2,2,1)
+%             subplot(2,2,1)
             imagesc([1:trial_dur]-PreStim,SUrate{n}{1}.stim(:,1),PSTH2);
 
             colormap(flipud(gray))
@@ -234,15 +240,15 @@ for nn = Sel_nidPC
             xline(stim_dur);
             ylabel('kHz');
             xlabel('ms');
-            title(['M60Fu' num2str(nn)]);
-            subplot(2,2,2)
-            DR_2 = mean(DR(17:end,:),2)-mean(SUrate{n}{1}.spont);
-            errorbar(stim_set,DR_2,std(DR(17:end,:),0,2)/sqrt(300))
-            if DR_2(5)>1*std(SUrate{n}{1}.spont)
-                distance = abs(DR_2-DR_2(5));
-                subplot(2,2,3)
-                plot(stim_set,distance);
-            end
+            title(['M60Fu' num2str(Sel_nid_all(nn))]);
+%             subplot(2,2,2)
+%             DR_2 = mean(DR(17:end,:),2)-mean(SUrate{n}{1}.spont);
+%             errorbar(stim_set,DR_2,std(DR(17:end,:),0,2)/sqrt(300))
+%             if DR_2(5)>1*std(SUrate{n}{1}.spont)
+%                 distance = abs(DR_2-DR_2(5));
+%                 subplot(2,2,3)
+%                 plot(stim_set,distance);
+%             end
 
         end
     end
