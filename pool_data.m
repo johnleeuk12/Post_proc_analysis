@@ -4,7 +4,7 @@ function [Pool, rate, raster] = pool_data(a_code,hole_number,varargin)
 %% Comments 
 % If a_code is 1, vargargin{1} should be dB attenuation (20,40,60)
 
-animal_name = 'M160E';
+animal_name = 'M60F';
 addpath(fullfile('D:\DATA', filesep, animal_name, filesep,'Units')); % path to Units
 addpath(fullfile('D:\DATA', filesep, animal_name, filesep,'Experiments')); %path to xbz files
 load([animal_name '_neurons_list.mat']);

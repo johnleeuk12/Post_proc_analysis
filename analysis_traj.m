@@ -3,7 +3,7 @@
 %% VT type
 PreStim = 300;
 PostStim = 500;
-
+nreps = 10;
 
 
 
@@ -58,6 +58,8 @@ switch VT_code
         
     case 32
         stim_num = 13;
+                stim_dur = 1161;
+
         stim_set = 2.37:0.735:11.19;
         zero_ind = 11;
         
@@ -67,7 +69,7 @@ trial_dur = stim_dur+PostStim+ PreStim;
 %%
 
 
-nrep = 10;
+nrep = nreps;
 PSTH = zeros(stim_num,trial_dur);
 
 keep_neurons_ind = find(keep_neurons == 1);
@@ -166,7 +168,7 @@ for pc = 1:3
     hold off
     drawnow
     %     legend({'onset','mid','end','offset'})
-    legend('onset','offset')
+    legend('onset+sustained','offset')
 end
 
 

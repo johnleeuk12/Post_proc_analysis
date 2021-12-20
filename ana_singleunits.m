@@ -27,7 +27,7 @@ switch VT_code
 end
 %% 2. select units with significant response 
 
-tpoint3 = PreStim + stim_dur   ;
+tpoint3 = PreStim + stim_dur +100   ;
 tpoint4 = tpoint3 + 300;
 tpoint1 = PreStim;
 tpoint2 = tpoint1 + 300;
@@ -57,8 +57,8 @@ for n = 1:length(SU_ind)
     DR2 = zeros(length(SUrate{SU_ind(n)}{1}.mean),tdur2+1);
     
     for st = 1:length(SUrate{SU_ind(n)}{1}.mean)
-        DR2(st,:) = mean(SUrate{SU_ind(n)}{1}.PSTH{st}(:,tpoint1:tpoint2)); %change which is being sorted 
-        DR(st,:) = mean(SUrate{SU_ind(n)}{1}.PSTH{st}(:,tpoint3:tpoint4)); 
+        DR(st,:) = mean(SUrate{SU_ind(n)}{1}.PSTH{st}(:,tpoint1:tpoint2)); %change which is being sorted 
+        DR2(st,:) = mean(SUrate{SU_ind(n)}{1}.PSTH{st}(:,tpoint3:tpoint4)); 
     end
     
     DR_mean = mean(DR,2);
@@ -273,16 +273,53 @@ for p = 1:length(g)
     elseif g(p) == 6
         g(p) = 5;
     end
-    if DR_peak
+    if DR_peak(p,3) == 0
+        g(p) = nan;
+    end
 end
 figure(56)
 boxplot(DR_peak(:,2),g)
 axis([0.5,5.5,-0.05,1.05])
-figure(57)
-scatter(peak_ind2,DR_peak(:,2))
+% figure(57)
+% scatter((peak_ind2*0.25),DR_peak(:,2))
+% axis([0,5,-0.05,1.05])
+% 
+
+
+peak_ind3 = peak_ind2*0.25;
+DR_peak_scatter = DR_peak(:,2);
+for d = 1:length(DR_peak_scatter)
+    if DR_peak(d,3) == 0
+        DR_peak_scatter(d) =nan;
+    end
+end
 
 
 
+
+nan_ind = find (~isnan(DR_peak_scatter)== 1);
+
+peak_ind3 = (peak_ind3(nan_ind,:));
+DR_peak_scatter = DR_peak_scatter(nan_ind,:);
+[PP, I] = sort(peak_ind3);
+PP  = [PP, DR_peak_scatter(I,:)];
+
+peak_ind3 = peak_ind3*4;
+% average 
+M = zeros(1,20);
+for d = 2:21
+    ind = [find(peak_ind3 == d-1); find(peak_ind3 == d); find(peak_ind3 == d+1)];
+%     ind = find(peak_ind3 ==d);
+    M(d) = median(DR_peak_scatter(ind,:));
+end
+
+
+figure(58)
+scatter(peak_ind3*0.25, DR_peak_scatter);
+axis([0,5,-0.05,1.05])
+hold on 
+plot([0:0.25:5],M);
+hold off
 
 %% find where delayed offset units are
 
