@@ -1,4 +1,4 @@
-function [Pool, rate, raster] =  Pool_BF(hole_number)
+function [Pool, rate, raster] =  Pool_BF(hole_number,animal_name)
 %%
 %{
 2/15/2021
@@ -7,7 +7,7 @@ determining BF and amplitude in response to PT and BP noise
 %}
 %% Loading data
 % run Pool_data for unit_list_new first
-animal_name = 'M60F';
+% animal_name = 'M60F';
 addpath(fullfile('D:\DATA', filesep, animal_name, filesep,'Units')); % path to Units
 addpath(fullfile('D:\DATA', filesep, animal_name, filesep,'Experiments')); %path to xbz files
 load([animal_name '_neurons_list.mat']);
@@ -33,7 +33,8 @@ if size(hole_number) == 1
 else
     u_list = [];
     for h = 1:length(hole_number)
-        u_list = [u_list find([unit_list.data{:,6}] == a_code & [unit_list.data{:,8}] == hole_number(h))];
+        u_list = [u_list find([unit_list.data{:,6}] == a_code(1) & [unit_list.data{:,8}] == hole_number(h))];
+        u_list = [u_list find([unit_list.data{:,6}] == a_code(2) & [unit_list.data{:,8}] == hole_number(h))];
     end
 end
 
@@ -119,7 +120,6 @@ for i = 1:length(u_list)
             %
             Pool(p).hole_nb = unit_list.data{u_list(i),8};
             Pool(p).track_nb = unit_list.data{u_list(i),9};
-            
             p = p+1;
             
         end

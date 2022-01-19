@@ -1,5 +1,5 @@
 for vc = 1:2:9
-    [DD, good_list_nid] = format4DataHigh(SUrate,22,vc);
+    [DD, good_list_nid,good_list,aid_list] = format4DataHigh(SUrate,10,1);
     
     PreStim = 300;
     PostStim = 500;

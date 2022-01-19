@@ -3,7 +3,7 @@ function Create_tonotopy()
 global D
 D = [];
     animal_name = 'M160E';
-    file_dir = 'D:\DATA\M160E\HT_position\';
+    file_dir = fullfile('D:\DATA', filesep, animal_name, filesep,'HT_position\');
     % Load EPhys Track positions
 %%
     D.Ephys.FileCoorTracks = [file_dir, animal_name, ...
@@ -19,6 +19,8 @@ D = [];
         D.Ephys.CoorTracksTextRaw{i} = D.Ephys.textline;      i = i+1;
     end
     fclose(D.Ephys.hFileCoorTracks);
+    
+    %%
     % extract useful text
     s=0;                Son=0;  % slide on;
     sp=0;   tSP = [];   SPon=0; % SP on;
@@ -66,7 +68,7 @@ D = [];
             end
         end
     end
-    
+    %%
     
     % Construct the tracks of each hole
     for s = 1:length(D.Ephys.CoorTracksS)
@@ -102,7 +104,10 @@ D = [];
                         D.Ephys.CoorTrackH{h}.track{t}.extx = double(tt);
                     tt = regexp(D.Ephys.CoorTracksS{s}.SP{sp}.ext, 'cy="\d');
                     tt = textscan(D.Ephys.CoorTracksS{s}.SP{sp}.ext(tt+4:end),'%d');	tt = tt{1};
-                        D.Ephys.CoorTrackH{h}.track{t}.exty = double(tt);                          
+                        D.Ephys.CoorTrackH{h}.track{t}.exty = double(tt);
+                    tt = regexp(D.Ephys.CoorTracksS{s}.SP{sp}.text, '</a:t>');
+                    tt = textscan(D.Ephys.CoorTracksS{s}.SP{sp}.text(2:tt-1),'%d');     tt = tt{1};
+                        D.Ephys.CoorTrackH{h}.track{t}.tracknumber = double(tt);
             end
         end
     end

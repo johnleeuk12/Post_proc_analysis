@@ -8,9 +8,33 @@ stimuli
 mean_thresh= 1;
 m = mean([DD.data],2)*1e3;
 keep_neurons = m >= mean_thresh;
-nreps = 8;
+nreps = 10;
 nid_list = good_list_nid(keep_neurons);
+SU_list = good_list(keep_neurons);
+aid_list = good_list_aid(keep_neurons);
 TD = {};
+window = 100;
+
+% %%
+% keep_neurons2 = [];
+% for n = 1:length(SU_list)
+%     count = 0;
+%     for st = 1:stim_num
+%         for w = PreStim:50:PreStim+stim_dur
+%             DR = SUrate{SU_list(n)}{1}.PSTH{st}(:,w:w+window);
+%             if mean(mean(DR)) - mean(SUrate{SU_list(n)}{1}.spont) - 2*std(SUrate{SU_list(n)}{1}.spont) > 0
+%                 count = 1;
+%             end
+%         end
+%     end
+%     keep_neurons2 = [keep_neurons2 count];
+%     
+% end
+% 
+%     
+
+
+
 
 %% Trial average D 
 
@@ -67,6 +91,7 @@ tpoint = [PreStim,PreStim+stim_dur];
 CorrMatrix = zeros(stim_num);
 new_nid_count = 0;
 new_nid_list = [];
+new_SU_list = [];
 for n = 1:length(nid_list)
     coorD = zeros(stim_num,tpoint(2)-tpoint(1));
     remove_n = 0;
@@ -92,6 +117,12 @@ for n = 1:length(nid_list)
         CorrMatrix = CorrMatrix + R;
         new_nid_count = new_nid_count+1;
         new_nid_list = [new_nid_list nid_list(n)];
+        new_SU_list = [new_SU_list SU_list(n)];
+                for r = 1:length(R)^2
+            if R(r) ==1
+                R(r) = nan;
+            end
+        end
         PoolCorr(:,:,new_nid_count) = R;
         
         
@@ -177,16 +208,19 @@ hold on
 
 c = hot(9);
 sdd = 0;
-for sd = 5:4:21 %37
-    sub_corr_mean = mean(mean(PoolCorr(sd-4:sd+4,sd-4:sd+4,:),1,'omitnan'),2);
-    sub_corr_mean = reshape(sub_corr_mean,1,[]);
-    [S, I] = sort(sub_corr_mean);
-    sdd = sdd+1;
-    figure(100)
-    hold on
-    plot(S,'LineWidth',2,'color',c(sdd,:))
-end
+% for sd = 21:4:37 %37
+sd = 21;
+sub_corr_mean = mean(mean(PoolCorr(sd-4:sd+4,sd-4:sd+4,:),1,'omitnan'),2);
+sub_corr_mean = reshape(sub_corr_mean,1,[]);
+[S, I] = sort(sub_corr_mean);
+sdd = sdd+1;
+figure(100)
+hold on
+plot(S,'LineWidth',2,'color',c(sdd,:))
+% end
 hold off
+
+new_SU_list = new_SU_list(I);
 
 
 %% average corr per SD

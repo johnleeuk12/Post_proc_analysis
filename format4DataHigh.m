@@ -1,19 +1,19 @@
-function [DD, good_list_nid] = format4DataHigh(SUrate,vocal_type,vocal_param2)
+function [DD, good_list_nid,good_list,good_list_aid] = format4DataHigh(SUrate,vocal_type,vocal_param2)
 
-%{ 
-D = 1xN struct array with fields: 
+%{
+D = 1xN struct array with fields:
     data: (number of neurons x number of milliseconds) array
-    N is the number of trials.. 
+    N is the number of trials..
 %}
 
 
 
 %% Initialize, pooling neurons, checking number of trials
-%{ 
+%{
 PTPhee High         01
 PTPhee Low          02
 
-PheeCF High         11         
+PheeCF High         11
 PheeCF Low          12
 
 TrillCF High        21
@@ -26,8 +26,8 @@ TwitterCF Low       32
 % vocal_type = 32;
 
 
-NN = length(SUrate); 
-
+NN = length(SUrate);
+animal_list = {'M60F','M160E','M56E'};
 
 
 switch vocal_type
@@ -89,7 +89,7 @@ switch vocal_type
         %         vc_fmr = 38.03; % 1.5SD
         %         vc_fmr = 40.72; %2SD
         %         vc_fmr = 43.41; % 2.5SD
-%         vc_fmr = 51.48; %4SD
+        %         vc_fmr = 51.48; %4SD
         stim_dur = 406;
         nreps = 10;
         
@@ -98,13 +98,13 @@ switch vocal_type
         vc_fmr_list = round([29.96:2.69:56.86]*100)/100;
         vc_fmr_ind = vocal_param2;
         vc_fmr = vc_fmr_list(vc_fmr_ind); %1 to 11
-%                 vc_fmr = 29.96; % change here to compare
-%         vc_fmr = 32.65; %0.5SD
-%         vc_fmr = 35.34; %1SD
-%         vc_fmr = 38.03; % 1.5SD
-%         vc_fmr = 40.72; %2SD
+        %                 vc_fmr = 29.96; % change here to compare
+        %         vc_fmr = 32.65; %0.5SD
+        %         vc_fmr = 35.34; %1SD
+        %         vc_fmr = 38.03; % 1.5SD
+        %         vc_fmr = 40.72; %2SD
         %         vc_fmr = 43.41; % 2.5SD
-%         vc_fmr = 51.48; %4SD
+        %         vc_fmr = 51.48; %4SD
         stim_dur = 406;
         nreps = 10;
         
@@ -118,13 +118,13 @@ switch vocal_type
         vc_ipi = 0.1398;
         stim_dur = 1161;
         nreps = 8;
-
+        
     case 32
         vc_list1 = round([2.37:0.735:11.19]*100)/100;
         vc_ipi = 0.1398;
         stim_dur = 1161;
         nreps = 8;
-
+        
 end
 
 
@@ -142,6 +142,7 @@ end
 good_list = [];
 good_list_pid = [];
 good_list_nid = [];
+good_list_aid = [];
 for n = 1:NN
     try
         if intersect(round((unique(SUrate{n}{1}.stim(:,1)).')*1e2),round(vc_list1*1e2)) == round(vc_list1*1e2)
@@ -150,32 +151,47 @@ for n = 1:NN
                     good_list = [good_list,n];
                     good_list_pid = [good_list_pid, SUrate{n}{1}.pid];
                     good_list_nid = [good_list_nid, SUrate{n}{1}.nid];
+                    for a = 1:length(animal_list)
+                        if strcmp(SUrate{n}{1}.xb.animal,animal_list(a))
+                            good_list_aid = [good_list_aid a];
+                        end
+                    end
                 case {21, 22}
                     if length(unique(SUrate{n}{1}.stim(:,3))) ==1 % fm depth has 1 value
-%                         if intersect(round((unique(SUrate{n}{1}.stim(:,2)).')*1e2),round(vc_fmr_list*1e2)) == round(vc_fmr_list*1e2)
-                            if size(SUrate{n}{1}.raw,2) >= nreps
-                                good_list = [good_list,n];
-                                good_list_pid = [good_list_pid, SUrate{n}{1}.pid];
-                                good_list_nid = [good_list_nid, SUrate{n}{1}.nid];
+                        %                         if intersect(round((unique(SUrate{n}{1}.stim(:,2)).')*1e2),round(vc_fmr_list*1e2)) == round(vc_fmr_list*1e2)
+                        if size(SUrate{n}{1}.raw,2) >= nreps
+                            good_list = [good_list,n];
+                            good_list_pid = [good_list_pid, SUrate{n}{1}.pid];
+                            good_list_nid = [good_list_nid, SUrate{n}{1}.nid];
+                            for a = 1:length(animal_list)
+                                if strcmp(SUrate{n}{1}.xb.animal,animal_list(a))
+                                    good_list_aid = [good_list_aid a];
+                                end
                             end
-                            
-%                         end
+                        end
+                        
+                        %                         end
                     end
                 case {23,24}
                     if length(unique(SUrate{n}{1}.stim(:,2))) ==1 % fm rate  has 1 value
                         good_list = [good_list,n];
                         good_list_pid = [good_list_pid, SUrate{n}{1}.pid];
                         good_list_nid = [good_list_nid, SUrate{n}{1}.nid];
+                        for a = 1:length(animal_list)
+                            if strcmp(SUrate{n}{1}.xb.animal,animal_list(a))
+                                good_list_aid = [good_list_aid a];
+                            end
+                        end
                     end
                     % case for m60F
-%                 case {31,32}
-% %                     T1 = SUrate{n}{1}.spont(1:66);
-% %                     T2 = SUrate{n}{1}.spont(78:end);
-% %                     if ttest2(T1,T2) == 0 % problem with spont rate in twitters
-%                         good_list = [good_list,n];
-%                         good_list_pid = [good_list_pid, SUrate{n}{1}.pid];
-%                         good_list_nid = [good_list_nid, SUrate{n}{1}.nid];
-% %                     end
+                    %                 case {31,32}
+                    % %                     T1 = SUrate{n}{1}.spont(1:66);
+                    % %                     T2 = SUrate{n}{1}.spont(78:end);
+                    % %                     if ttest2(T1,T2) == 0 % problem with spont rate in twitters
+                    %                         good_list = [good_list,n];
+                    %                         good_list_pid = [good_list_pid, SUrate{n}{1}.pid];
+                    %                         good_list_nid = [good_list_nid, SUrate{n}{1}.nid];
+                    % %                     end
                 case{31,32}
                     if size(SUrate{n}{1}.PSTH{1},1) > 7
                         if length(SUrate{n}{1}.spont) >1
@@ -185,11 +201,21 @@ for n = 1:NN
                                 good_list = [good_list,n];
                                 good_list_pid = [good_list_pid, SUrate{n}{1}.pid];
                                 good_list_nid = [good_list_nid, SUrate{n}{1}.nid];
+                                for a = 1:length(animal_list)
+                                    if strcmp(SUrate{n}{1}.xb.animal,animal_list(a))
+                                        good_list_aid = [good_list_aid a];
+                                    end
+                                end
                             end
                         else
                             good_list = [good_list,n];
                             good_list_pid = [good_list_pid, SUrate{n}{1}.pid];
                             good_list_nid = [good_list_nid, SUrate{n}{1}.nid];
+                            for a = 1:length(animal_list)
+                                if strcmp(SUrate{n}{1}.xb.animal,animal_list(a))
+                                    good_list_aid = [good_list_aid a];
+                                end
+                            end
                         end
                     end
             end
@@ -216,7 +242,7 @@ for p = 1:length(vc_list1)
     vc_cf = vc_list1(p);
     
     for r = 1:nreps
-
+        
         trial_dur = pre_stim + stim_dur + post_stim;% + post_stim;
         DD(r+(p-1)*nreps).data = zeros(length(good_list),trial_dur);
         DD(r+(p-1)*nreps).condition = num2str(vc_cf,'%05.2f');
@@ -225,13 +251,13 @@ for p = 1:length(vc_list1)
         for n = 1:length(good_list)
             switch vocal_type
                 case {0, 01, 02}
-                    vc_ind = find(round(SUrate{good_list(n)}{1}.xb.stimulus_ch1(:,8)) == round(vc_cf*1e3)); 
+                    vc_ind = find(round(SUrate{good_list(n)}{1}.xb.stimulus_ch1(:,8)) == round(vc_cf*1e3));
                 case {10,11, 12}
                     vc_ind = find(SUrate{good_list(n)}{1}.xb.stimulus_ch1(:,10) == vc_cf);
                 case {21, 22}
                     vc_ind = find(SUrate{good_list(n)}{1}.stim(:,1) == vc_cf & SUrate{good_list(n)}{1}.stim(:,2) == vc_fmr_list(vc_fmr_ind));
                     vc_ind2 = vc_ind+1;
-%                     vc_ind2 = find(SUrate{good_list(n)}{1}.stim(:,1) == vc_cf & SUrate{good_list(n)}{1}.stim(:,2) == vc_fmr_list(vc_fmr_ind+1));
+                    %                     vc_ind2 = find(SUrate{good_list(n)}{1}.stim(:,1) == vc_cf & SUrate{good_list(n)}{1}.stim(:,2) == vc_fmr_list(vc_fmr_ind+1));
                     if isempty(vc_ind)
                         [~,vc_ind]=min(abs(SUrate{good_list(n)}{1}.stim(:,2)-vc_fmr));
                         vc_ind = vc_ind+(p-1)*length(unique(SUrate{good_list(n)}{1}.stim(:,2)));

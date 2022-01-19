@@ -1,4 +1,4 @@
-function det_BF(Pool, rate, raster,figure_on)
+function det_BF(Pool, rate, raster,animal_name,figure_on)
 
 
 %%
@@ -6,10 +6,10 @@ function det_BF(Pool, rate, raster,figure_on)
 
 
 
-animal_name = 'M60F';
-savedir = fullfile('E:\DATA\ana_tones',filesep,animal_name);
 
-try 
+savedir = fullfile('E:\DATA',filesep,animal_name, filesep,'ana_tones\data');
+
+try
     load([savedir '\neurons_loc_tag.mat']);
 catch
     neurons_loc_tag = {};
@@ -25,11 +25,13 @@ N_list = N_list(2:end);
 SUrate = {};
 
 for n = 1:length(N_list)
-        rec_list = find([Pool.neuron_nb] == N_list(n));
-        p = rec_list(1);
-        neurons_loc_tag(Pool(p).neuron_nb).neuron_nb = Pool(p).neuron_nb;
-        neurons_loc_tag(Pool(p).neuron_nb).hole_nb = Pool(p).hole_nb;
-        neurons_loc_tag(Pool(p).neuron_nb).track_nb = Pool(p).track_nb;
+    rec_list = find([Pool.neuron_nb] == N_list(n));
+    p = rec_list(1);
+    neurons_loc_tag(Pool(p).neuron_nb).neuron_nb = Pool(p).neuron_nb;
+    neurons_loc_tag(Pool(p).neuron_nb).hole_nb = Pool(p).hole_nb;
+    neurons_loc_tag(Pool(p).neuron_nb).track_nb = Pool(p).track_nb;
+    neurons_loc_tag(Pool(p).neuron_nb).animal_tag = Pool(p).xb.animal;
+    neurons_loc_tag(Pool(p).neuron_nb).stim_matrix = zeros(2,12);
 end
 
 save([savedir '\neurons_loc_tag.mat'], 'neurons_loc_tag');
@@ -48,6 +50,7 @@ for n = 1:length(N_list)
         a_code = Pool(p).xb.analysis_code;
         db = Pool(p).xb.stimulus_ch1(1,3);
         lens = Pool(p).xb.stimulus_ch1(1,5);
+        
         if lens ==100
             if a_code == 1
                 switch db
@@ -61,15 +64,30 @@ for n = 1:length(N_list)
                         s2 = 4;
                 end
             elseif a_code == 62
-                switch db
-                    case 80
-                        s2 = 5;
-                    case 60
-                        s2 = 6;
-                    case 40
-                        s2 = 7;
-                    case 20
-                        s2 = 8;
+                bw = Pool(p).xb.stimulus_ch1(1,9);
+                if bw == 1
+                    switch db
+                        case 80
+                            s2 = 5;
+                        case 60
+                            s2 = 6;
+                        case 40
+                            s2 = 7;
+                        case 20
+                            s2 = 8;
+                    end
+                elseif bw == 0.5
+                    switch db
+                        case 80
+                            s2 = 9;
+                        case 60
+                            s2 = 10;
+                        case 40
+                            s2 = 11;
+                        case 20
+                            s2 = 12;
+                            
+                    end
                 end
             end
             s1 = 2;
@@ -79,7 +97,7 @@ for n = 1:length(N_list)
             catch
                 s1 = 1;
             end
-            
+            neurons_loc_tag(Pool(p).neuron_nb).stim_matrix(s1,s2) = 1;
             nreps = size(rate.stim{p},2);
             SUrate{n}{s1,s2}.mean = mean(rate.stim{p},2);
             %                 SUrate{n}{s1,s2}.post =
@@ -107,11 +125,11 @@ for n = 1:length(N_list)
                 SUrate{n}{s1,s2}.ana.onset.data(st,:) = mean(SUrate{n}{s1,s2}.PSTH{st}(:,200:300),2).';
                 SUrate{n}{s1,s2}.ana.offset1.data(st,:) = mean(SUrate{n}{s1,s2}.PSTH{st}(:,300:400),2).';
                 SUrate{n}{s1,s2}.ana.offset2.data(st,:) = mean(SUrate{n}{s1,s2}.PSTH{st}(:,400:500),2).';
-%                 SUrate{n}{s1,s2}.ana.spont.data = 
+                %                 SUrate{n}{s1,s2}.ana.spont.data =
             end
             
             % onset
-            temp_mean = movmean(mean(SUrate{n}{s1,s2}.ana.onset.data,2),3);            
+            temp_mean = movmean(mean(SUrate{n}{s1,s2}.ana.onset.data,2),3);
             [pks,loc]= findpeaks(temp_mean);
             bf_ind = loc(find(pks ==max(pks)));
             SUrate{n}{s1,s2}.ana.onset.BF_ind = [];
@@ -155,19 +173,20 @@ for n = 1:length(N_list)
         fprintf(['%4d /' num2str(length(N_list)) ' time : %6.2f sec \n'],n,toc')
     end
     ana_PT = SUrate{n};
-    save(filepath,'ana_PT');
-    
+    if ~exist(filepath)
+        save(filepath,'ana_PT');
+    end
 end
 
 %% Determine peaks and latency
 
 % for n = 1%:length(N_list)
-% 
-%     
-%     
-% 
+%
+%
+%
+%
 % end
-% 
+%
 
 
 
@@ -278,8 +297,8 @@ if figure_on == 1
             num2str(Pool(p).track_nb) ' Unit ' num2str(Pool(p).neuron_nb)])
         
     end
-
-
+    
+    
 end
 
 
