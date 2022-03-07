@@ -13,24 +13,24 @@ for n = Sel_nid
         end
     end
 end
-% VT_code = 01;
+VT_code = 0;
 
 switch VT_code
     case {10, 11}
         for n = 1:NN
             SUrate{n}{1}.stim = SUrate{n}{1}.xb.stimulus_ch1(:,10);
         end
-    case 01
+    case 0
         for n = 1:NN
             SUrate{n}{1}.stim = SUrate{n}{1}.xb.stimulus_ch1(:,8);
         end
 end
 %% 2. select units with significant response 
 
-tpoint3 = PreStim + stim_dur +100   ;
-tpoint4 = tpoint3 + 300;
+tpoint3 = PreStim + stim_dur +50   ;
+tpoint4 = tpoint3 + 400;
 tpoint1 = PreStim;
-tpoint2 = tpoint1 + 300;
+tpoint2 = tpoint1 + stim_dur + 100;
 % tpoint1 = PreStim+100;
 % tpoint2 = tpoint1 + stim_dur;
 tdur1 = tpoint2-tpoint1;
@@ -57,34 +57,76 @@ for n = 1:length(SU_ind)
     DR2 = zeros(length(SUrate{SU_ind(n)}{1}.mean),tdur2+1);
     
     for st = 1:length(SUrate{SU_ind(n)}{1}.mean)
-        DR(st,:) = mean(SUrate{SU_ind(n)}{1}.PSTH{st}(:,tpoint1:tpoint2)); %change which is being sorted 
-        DR2(st,:) = mean(SUrate{SU_ind(n)}{1}.PSTH{st}(:,tpoint3:tpoint4)); 
+        DR(st,:) = mean(SUrate{SU_ind(n)}{1}.PSTH{st}(:,tpoint1:tpoint2));
+    end
+    DR_binned = [];
+    bin_sz = 50;
+    for t1 = 1:bin_sz:size(DR,2)-bin_sz
+        DR_binned = [DR_binned, mean(DR(:,t1:t1+bin_sz),2)];
     end
     
-    DR_mean = mean(DR,2);
-%     DR_mean = movmean(DR_mean,3);
-    [~, ind] = max(DR_mean);
-    std_thresh = mean(SUrate{SU_ind(n)}{1}.spont) + 2*std(SUrate{SU_ind(n)}{1}.spont);
+    DR_binned = movmean(DR_binned,5,1);
+    DP = max(max(DR_binned));
+    
+    [real_ind, t_ind] = find(DR_binned == DP);
+    
+    if length(real_ind)>1
+        real_ind = round(mean(real_ind));
+    end
+    
+    if length(t_ind)>1
+        t_ind = round(mean(t_ind));
+    end
+    
+        std_thresh = mean(SUrate{SU_ind(n)}{1}.spont) + 4*std(SUrate{SU_ind(n)}{1}.spont);
 
 %     std_thresh = 1*std(SUrate{SU_ind(n)}{1}.spont);
-    if ind == length(DR_mean)
-        ind = ind-1;
-    elseif ind == 1
-        ind = ind +1; 
+    if real_ind == size(DR_binned,1)
+        ind = real_ind-1;
+    elseif real_ind == 1
+        ind = real_ind +1; 
+    else 
+        ind = real_ind;
     end
-       
     
-    if DR_mean(ind-1:ind+1) > std_thresh   
-%     if DR_mean(ind)>std_thresh
-        mat_tuning = [mat_tuning;(mean(DR,2)-mean(SUrate{SU_ind(n)}{1}.spont)).'];
-        mat_tuning2 = [mat_tuning2;(mean(DR2,2)-mean(SUrate{SU_ind(n)}{1}.spont)).'];
-        [DP, real_ind] = max(DR_mean);
-%         DR_peak = [DR_peak;[DP, (DP-DR_mean(21))/(range(DR_mean-mean(SUrate{SU_ind(n)}{1}.spont)))]];
-        DR_peak = [DR_peak;[DP, (DP-DR_mean(21))/range(DR_mean), DR_mean(21)]];
+    
+    if DR_binned(ind-1:ind+1,t_ind) >std_thresh
+        DR_peak = [DR_peak;[DP, (DP-DR_binned(21,t_ind))/(range(DR_binned(:,t_ind))),DR_binned(21,t_ind)]];
         mat_peak_ind = [mat_peak_ind; real_ind];
         Sel_nid_all = [Sel_nid_all; SUrate{SU_ind(n)}{1}.nid];
         spont_thresh = [spont_thresh; std_thresh];
     end
+    
+    % before modification 1/19/2022
+%     for st = 1:length(SUrate{SU_ind(n)}{1}.mean)
+%         DR(st,:) = mean(SUrate{SU_ind(n)}{1}.PSTH{st}(:,tpoint1:tpoint2)); %change which is being sorted 
+%         DR2(st,:) = mean(SUrate{SU_ind(n)}{1}.PSTH{st}(:,tpoint3:tpoint4)); 
+%     end
+%     
+%     DR_mean = mean(DR,2);
+% %     DR_mean = movmean(DR_mean,3);
+%     [~, ind] = max(DR_mean);
+%     std_thresh = mean(SUrate{SU_ind(n)}{1}.spont) + 2*std(SUrate{SU_ind(n)}{1}.spont);
+% 
+% %     std_thresh = 1*std(SUrate{SU_ind(n)}{1}.spont);
+%     if ind == length(DR_mean)
+%         ind = ind-1;
+%     elseif ind == 1
+%         ind = ind +1; 
+%     end
+%        
+%     
+%     if DR_mean(ind-1:ind+1) > std_thresh   
+% %     if DR_mean(ind)>std_thresh
+%         mat_tuning = [mat_tuning;(mean(DR,2)-mean(SUrate{SU_ind(n)}{1}.spont)).'];
+%         mat_tuning2 = [mat_tuning2;(mean(DR2,2)-mean(SUrate{SU_ind(n)}{1}.spont)).'];
+%         [DP, real_ind] = max(DR_mean);
+% %         DR_peak = [DR_peak;[DP, (DP-DR_mean(21))/(range(DR_mean-mean(SUrate{SU_ind(n)}{1}.spont)))]];
+%         DR_peak = [DR_peak;[DP, (DP-DR_mean(21))/range(DR_mean), DR_mean(21)]];
+%         mat_peak_ind = [mat_peak_ind; real_ind];
+%         Sel_nid_all = [Sel_nid_all; SUrate{SU_ind(n)}{1}.nid];
+%         spont_thresh = [spont_thresh; std_thresh];
+%     end
 end
 
 peak_ind2 = abs(mat_peak_ind-21);
@@ -314,13 +356,45 @@ for d = 2:21
 end
 
 
+
+
+
 figure(58)
 scatter(peak_ind3*0.25, DR_peak_scatter);
+
+% scatter(peak_ind2.*overlap_ind*.25,DR_peak(:,2).*overlap_ind);
 axis([0,5,-0.05,1.05])
 hold on 
 plot([0:0.25:5],M);
 hold off
 
+%% save comparing variables
+comp.DR_peak = DR_peak;
+comp.g = g;
+comp.peak_ind3 = peak_ind3;
+comp.DR_peak_scatter = DR_peak_scatter;
+comp.Sel_nid_all = Sel_nid_all;
+
+
+%% comparing 
+test = comp.Sel_nid_all;
+overlap_ind = zeros(length(Sel_nid_all),1);
+for nn = 1:length(Sel_nid_all)
+    if sum(Sel_nid_all(nn) == test)
+        overlap_ind(nn) =1;
+    end
+end
+
+indAL = find(comp.peak_ind3/4 <= 2 & comp.peak_ind3/4 > 1);
+indA1 = find(comp2.peak_ind3/4 <= 2 & comp2.peak_ind3/4 > 1);
+
+AL2SD = comp.DR_peak_scatter(indAL);
+A12SD = comp2.DR_peak_scatter(indA1);
+
+p = ranksum(AL2SD, A12SD)
+
+median(AL2SD)
+median(A12SD)
 %% find where delayed offset units are
 
 % Sel_nid_all = Sel_nid;

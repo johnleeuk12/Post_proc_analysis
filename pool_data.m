@@ -53,15 +53,15 @@ toc
 
 % use the following code to correct errors in hole and track number in
 % M160E
-for i = 896: 1018
-   unit_list.data{i,8} = 2;
-    unit_list.data{i,9} = 5;
-end
-
-for i = 2384: 2522
-   unit_list.data{i,8} = 6;
-    unit_list.data{i,9} = 1;
-end
+% for i = 896: 1018
+%    unit_list.data{i,8} = 2;
+%     unit_list.data{i,9} = 5;
+% end
+% 
+% for i = 2384: 2522
+%    unit_list.data{i,8} = 6;
+%     unit_list.data{i,9} = 1;
+% end
 
 
 

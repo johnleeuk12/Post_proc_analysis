@@ -6,9 +6,10 @@ function ana_PT()
 H_list = unique([neurons_loc_tag.hole_nb]).';
 
 track_data = [];
-
+T_list_H = [];
 for ho = 1:length(H_list)
     tr_list = unique([neurons_loc_tag(find([neurons_loc_tag.hole_nb] == H_list(ho))).track_nb]);
+    T_list_H = [T_list_H; length(tr_list)];
     for tr = tr_list
         track_data = [track_data; H_list(ho), tr, ...
                     length(find([neurons_loc_tag.hole_nb] == H_list(ho) & [neurons_loc_tag.track_nb] == tr))];
@@ -59,6 +60,59 @@ parfor ch = 1:64
     [data{ch},~,~] = load_open_ephys_data_faster([filedir filesep '100_CH' num2str(ch) '.continuous' ]);
 end
 
+%% 02/25/2022 Find multipeak responses
+% db_ind.      4 is 20db % 3 is 40db, 2 is 60db 1 is 80 db
+
+
+for n = 208:378
+    
+    fi = figure(n);
+    set(fi, 'Position', [100 200 2400 660]);
+    for db_ind = 2:5
+        out.data{1,db_ind}{n,8} = {};
+        if ~isempty(out.data{1,db_ind}{n,1})
+            X = out.data{1,db_ind}{n,6};
+            X2 = imgaussfilt(X,[3,20],'Padding',0); %,'Padding','circular');
+            X2 = X2-mean2(X2(:,1:150)); % removing spont rate
+            subplot(1,4,db_ind-1)
+            imagesc(X2)
+            hold on
+            rectangle('Position',[200 0 100 size(X2,1)],'LineWidth',2)
+            p = 1;
+            
+            for tf = 201:100:401
+                T = mean(X2(:,tf:tf+100),2);
+                SD = std2(X2(:,1:150));
+                [pks, locs] = findpeaks(T,'MinPeakProminence',2*SD);
+                locs2 = [];
+                if ~isempty(locs)
+                    for lc = 1:length(locs)
+                        if pks(lc)>3*SD
+                            scatter(tf+50,locs(lc),100,'rp','filled')
+                            locs2 = [locs2 locs(lc)];
+                        end
+                    end
+                end
+                out.data{1,db_ind}{n,8}{p} = locs2;
+                 p = p+1;
+            end
+
+        end
+    end
+    
+    drawnow()
+    pause()
+    
+    
+    
+end
+
+
+
+
+
+
+
 %%
 rawD = zeros(64,length(data{1}));
 for ch = 1:length(chanMap)
@@ -100,6 +154,7 @@ end
             
 stdD = std(filtData,0,2);
 figure(5)
+scatter([1:64],stdD)
 plot(stdD);
 % meanD = mean(abs(filtData),2);
 % plot(meanD);

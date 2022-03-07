@@ -7,7 +7,7 @@ nreps = 10;
 
 
 
-VT_code = 10;
+VT_code = 21;
 switch VT_code
     case 10
         stim_dur = 1180;
@@ -113,7 +113,7 @@ end
 % else_ind = 1:stim_num;
 % else_ind(zero_ind) = [];
 X = {};
-for pc = 1:3
+for pc = 1:5
     X{pc}.data = zeros(stim_num,length(Dtraj(st).data));
     for st = 1:stim_num
         for t = 1:length(Dtraj(st).data)
@@ -145,7 +145,7 @@ epoch_starts = ceil(Dtraj(1).epochStarts/20);
 
 x_axis = stim_set;
 
-for pc = 1:3
+for pc = 1:5
     %     subplot(2,4,pc)
     figure(pc);
     subplot(1,2,2)

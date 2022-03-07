@@ -3,7 +3,7 @@ function figures_tones(out)
 
 N_list = out.data{1,1}(:,1);
 
-animal_name = 'M60F';
+animal_name = 'M56E';
 
 % B : best dB, BF, peak lat, FR, min lat,
 
@@ -37,6 +37,75 @@ for n = 1:length(N_list)
     end
 end
 
+%% 01/03/2022 Find noise responses using B and N_list
+
+out2 = ana_noise([1:5],animal_name,B,N_list,500);
+
+
+%% 02/25/2022 Find multipeak responses
+% db_ind.      4 is 20db % 3 is 40db, 2 is 60db 1 is 80 db
+
+P = zeros(length(N_list),2);
+tic
+for n = 1:length(N_list)
+    if mod(n,100) ==1
+        fprintf(['%4d /' num2str(length(N_list)) ' time : %6.2f sec \n'],n,toc')
+    end
+    
+    peaks = [];
+    for db_ind = 2:5
+        out.data{1,db_ind}{n,8} = {};
+        if ~isempty(out.data{1,db_ind}{n,1})
+            X = out.data{1,db_ind}{n,6};
+            X2 = imgaussfilt(X,[3,20],'Padding',0); %,'Padding','circular');
+            X2 = X2-mean2(X2(:,1:150)); % removing spont rate
+            p = 1;
+            
+            for tf = 201%:100:401
+                T = mean(X2(:,tf:tf+100),2);
+                SD = std2(X2(:,1:150));
+                [pks, locs] = findpeaks(T,'MinPeakProminence',2*SD);
+                locs2 = [];
+                if ~isempty(locs)
+                    for lc = 1:length(locs)
+                        if pks(lc)>2*SD
+                            locs2 = [locs2 locs(lc)];
+                        end
+                    end
+                end
+                out.data{1,db_ind}{n,8}{p} = locs2;
+                peaks = [peaks locs2];
+                 p = p+1;
+            end
+
+        end
+    end
+    if length(peaks) >1
+    Y = pdist(peaks.');
+    Z = linkage(Y);
+    clust = cluster(Z,'Cutoff',5,'Criterion','distance');
+    P(n,:) = [n,max(clust)];
+    elseif length(peaks) == 1
+        P(n,:) = [n,1];
+    elseif isempty(peaks)
+          P(n,:) = [n,0];  
+    end
+end
+
+for n = 1:length(N_list)
+    if P(n,2) == 0
+        if isnan(B(n,2))
+            B(n,8) = nan;
+        else
+            B(n,8) = 1;
+        end
+    else
+        B(n,8) = P(n,2);
+    end
+end
+            
+
+
 
 %%
 global C
@@ -47,7 +116,8 @@ C.pool.data_tags = {'db_ind'...
                     'BF, kHz'...
                     'peak_latency, ms'...
                     'peak_FR, spks/s'...
-                    'min_latency, ms'};
+                    'min_latency, ms'...
+                    'number of peaks'};
 
 H_list = unique(C.pool.neurons_info(:,2));
 for h = 1:length(H_list)
@@ -58,6 +128,8 @@ for h = 1:length(H_list)
         
         ht_ind = (C.pool.neurons_info(:,2) == H_list(h) & C.pool.neurons_info(:,3) == htracks(ht) &~isnan(B(:,6))); % & B(:,7)>2);
         ht_ind2 = (C.pool.neurons_info(:,2) == H_list(h) & C.pool.neurons_info(:,3) == htracks(ht));
+        nz_ind = (out2.info(:,2) == H_list(h) & out2.info(:,3) ==htracks(ht)); 
+        
         
         C.H{H_list(h)}{htracks(ht)}.BF.mean = mean(B(ht_ind,2),'omitnan');
         C.H{H_list(h)}{htracks(ht)}.BF.med = median(B(ht_ind,2),'omitnan');
@@ -69,7 +141,7 @@ for h = 1:length(H_list)
         
         C.H{H_list(h)}{htracks(ht)}.pkFR.mean = mean(B(ht_ind,4),'omitnan');
         C.H{H_list(h)}{htracks(ht)}.pkFR.med = median(B(ht_ind,4),'omitnan');
-        C.H{H_list(h)}{htracks(ht)}.pkFR.std = std(B(ht_ind,4),'omitnan');
+        C.H{H_list(h)}{htracks(ht)}.pkFR.std = std(B(ht_ind,4),'omitnan'); 
         
         C.H{H_list(h)}{htracks(ht)}.spontFR.mean = mean(B(ht_ind2,5),'omitnan');
         C.H{H_list(h)}{htracks(ht)}.spontFR.med = median(B(ht_ind2,5),'omitnan');
@@ -81,6 +153,15 @@ for h = 1:length(H_list)
         
         C.H{H_list(h)}{htracks(ht)}.bestdB.mean = mean(B(ht_ind,7),'omitnan');
         C.H{H_list(h)}{htracks(ht)}.bestdB.median = median(B(ht_ind,7),'omitnan');
+        
+        C.H{H_list(h)}{htracks(ht)}.multipeak.mean = mean(B(ht_ind2,8),'omitnan');
+        C.H{H_list(h)}{htracks(ht)}.multipeak.median = median(B(ht_ind2,8),'omitnan');
+        C.H{H_list(h)}{htracks(ht)}.multipeak.percentage = 1- length(find(B(ht_ind2,8)==1))/length(B(ht_ind2,8));
+        
+        C.H{H_list(h)}{htracks(ht)}.noise.mean = mean(out2.data(nz_ind,6),'omitnan');
+        C.H{H_list(h)}{htracks(ht)}.noise.median = median(out2.data(nz_ind,6),'omitnan');
+        C.H{H_list(h)}{htracks(ht)}.noise.percentage = 1-sum(isnan(out2.data(nz_ind,6)))/length(out2.data(nz_ind,6)); %number of units that has same peaks bet PT and Noise
+        C.H{H_list(h)}{htracks(ht)}.noise.std = std(out2.data(nz_ind,6),'omitnan');
 
     end
 

@@ -1,11 +1,11 @@
 
 
-[Pool, rate, raster] =  Pool_BF([7,8,9,10],'M160E');
+[Pool, rate, raster] =  Pool_BF([1:5],'M56E');
 
 pause(0.1)
-det_BF(Pool, rate, raster,'m160E',0);
+det_BF(Pool, rate, raster,'m56E',0);
 %
-out = ana_BF([7,8,9,10], 0,'m160E');
+out = ana_BF([1:5], 0,'m56E');
 
 
 %% combine outs
@@ -20,3 +20,7 @@ for on = 2:5
 end
 
 holes = unique(out.data{1}(:,2));
+
+%% noise combine noise 
+
+out2 = ana_noise([7:10],'M160E',B,N_list);

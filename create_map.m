@@ -1,22 +1,22 @@
 function create_map()
 
-animal_name = 'M60F';
+animal_name = 'M56E';
 addpath('C:\Users\John.Lee\Documents\GitHub\Post_proc_analysis\util');
 load(fullfile('D:\DATA', filesep, animal_name, filesep,'HT_position\D_tonotopy.mat'));
 global D C
 
 %% colormap
 
-% G.A_CM_TuneHueTplt =     HueRedist('HSVadjusted', 'Circular');
-% G.A_CM_TuneHueTpltIn =   linspace(0, 1, length(G.A_CM_TuneHueTplt))';
-% G.A_CM_AmpNum =     100;
-% G.A_CM_GrayNum =	0;
-% G.A_CM_HSV(:,:,1) =	repmat(G.A_CM_TuneHueTplt', G.A_CM_AmpNum+1, 1);
-% G.A_CM_HSV(:,:,2) =	repmat(linspace(1, 0, G.A_CM_AmpNum+1)', 1, length(G.A_CM_TuneHueTplt));
-% G.A_CM_HSV(:,:,3) =	repmat(linspace(1, 0, G.A_CM_AmpNum+1)', 1, length(G.A_CM_TuneHueTplt));
-% G.A_CM_RGB =  reshape(...
-%     hsv2rgb( reshape(G.A_CM_HSV,[],3) ),...
-%     G.A_CM_AmpNum+1, length(G.A_CM_TuneHueTplt), 3);
+G.A_CM_TuneHueTplt =     HueRedist('HSVadjusted', 'Circular');
+G.A_CM_TuneHueTpltIn =   linspace(0, 1, length(G.A_CM_TuneHueTplt))';
+G.A_CM_AmpNum =     100;
+G.A_CM_GrayNum =	0;
+G.A_CM_HSV(:,:,1) =	repmat(G.A_CM_TuneHueTplt', G.A_CM_AmpNum+1, 1);
+G.A_CM_HSV(:,:,2) =	repmat(linspace(1, 0, G.A_CM_AmpNum+1)', 1, length(G.A_CM_TuneHueTplt));
+G.A_CM_HSV(:,:,3) =	repmat(linspace(1, 0, G.A_CM_AmpNum+1)', 1, length(G.A_CM_TuneHueTplt));
+G.A_CM_RGB =  reshape(...
+    hsv2rgb( reshape(G.A_CM_HSV,[],3) ),...
+    G.A_CM_AmpNum+1, length(G.A_CM_TuneHueTplt), 3);
 
 
 
@@ -51,7 +51,11 @@ for n = 1:N_holes
 %         posi(:,2) = -posi(:,2);
         
         %rotation
+        % if right hemisphere
         theta = -27;
+        % if left hemisphere
+%         theta = 27;
+        
         R=[cosd(theta) -sind(theta); sind(theta) cosd(theta)];
         posi = posi*R';
         
@@ -62,7 +66,7 @@ for n = 1:N_holes
         if ~isempty(C.H{1,n})
             for tr = 1:length(C.H{1,n})
                 if ~isempty(C.H{1,n}{1,tr})
-                    V = C.H{1,n}{1,tr}.bestdB.mean*20; %-C.H{1,n}{1,tr}.minlat.med;%/(32*1e3); % change here to change variable
+                    V = C.H{1,n}{1,tr}.minlat.med-200; %-C.H{1,n}{1,tr}.minlat.med;%/(32*1e3); % change here to change variable
                     
 %                                         V = log2(V/440)*12;
 %                     V = log2(V*1e-3);
@@ -79,9 +83,15 @@ for n = 1:N_holes
         fprintf(['H %4d does not have tracks \n'],n')
     end
 end
+% 
+% colormap(flipud(parula))
+colormap(parula)
+caxis([0 200]);
+colorbar
 
-colormap(flipud(parula))
-caxis([0 5]);
+
+
+
 % colormap(squeeze(G.A_CM_RGB(1,:,:)))
-% caxis([0 72])
+% caxis([-1 5])
 

@@ -2,7 +2,7 @@ function Create_tonotopy()
 
 global D
 D = [];
-    animal_name = 'M160E';
+    animal_name = 'M56E';
     file_dir = fullfile('D:\DATA', filesep, animal_name, filesep,'HT_position\');
     % Load EPhys Track positions
 %%
