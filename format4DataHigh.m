@@ -83,6 +83,8 @@ switch vocal_type
         vc_fmr_list = round([29.96:2.69:56.86]*100)/100;
         vc_fmr_ind = vocal_param2;
         vc_fmr = vc_fmr_list(vc_fmr_ind); %1 to 11
+        vc_list2 = vc_fmr_list(vocal_param2); %: vocal_param2+2);
+        
         %                         vc_fmr = 29.96; % change here to compare
         %         vc_fmr = 32.65; %0.5SD
         %         vc_fmr = 35.34; %1SD
@@ -98,6 +100,7 @@ switch vocal_type
         vc_fmr_list = round([29.96:2.69:56.86]*100)/100;
         vc_fmr_ind = vocal_param2;
         vc_fmr = vc_fmr_list(vc_fmr_ind); %1 to 11
+        vc_list2 = vc_fmr_list(vocal_param2);% : vocal_param2+2);
         %                 vc_fmr = 29.96; % change here to compare
         %         vc_fmr = 32.65; %0.5SD
         %         vc_fmr = 35.34; %1SD
@@ -115,14 +118,22 @@ switch vocal_type
         %
         %                 vc_ipi = 0.2309;
         %                 stim_dur = 1890;
-        vc_ipi = 0.1398;
-        stim_dur = 1161;
+        vc_ipi_list = [0.1398, 0.1489, 0.1580, 0.1671, 0.1763, 0.1854, 0.1945, 0.2036, 0.2127, 0.2218, 0.2309];
+%         vc_list2 = vc_ipi_list(vocal_param2:vocal_param2+2);
+        vc_list2 = vc_ipi_list(vocal_param2);
+        stim_dur_list = [1161, 1233:73:1890];
+
+        stim_dur = stim_dur_list(vocal_param2);
         nreps = 8;
         
     case 32
         vc_list1 = round([2.37:0.735:11.19]*100)/100;
-        vc_ipi = 0.1398;
-        stim_dur = 1161;
+        vc_ipi_list = [0.1398, 0.1489, 0.1580, 0.1671, 0.1763, 0.1854, 0.1945, 0.2036, 0.2127, 0.2218, 0.2309];
+%         vc_list2 = vc_ipi_list(vocal_param2:vocal_param2+2);
+        vc_list2 = vc_ipi_list(vocal_param2);
+        stim_dur_list = [1161, 1233:73:1890];
+
+        stim_dur = stim_dur_list(vocal_param2);
         nreps = 8;
         
 end
@@ -168,6 +179,18 @@ for n = 1:NN
                                     good_list_aid = [good_list_aid a];
                                 end
                             end
+%                         else
+%                             good_list = [good_list,n];
+%                             good_list_pid = [good_list_pid, SUrate{n}{1}.pid];
+%                             good_list_nid = [good_list_nid, SUrate{n}{1}.nid];
+%                             for a = 1:length(animal_list)
+%                                 if strcmp(SUrate{n}{1}.xb.animal,animal_list(a))
+%                                     good_list_aid = [good_list_aid a];
+%                                 end
+%                             end
+%                             for nst = 1:length(SUrate{n}{1}.PSTH)
+%                                 SUrate{n}{1}.PSTH{nst} = [SUrate{n}{1}.PSTH{nst} ;SUrate{n}{1}.PSTH{nst}];
+%                             end
                         end
                         
                         %                         end
@@ -237,46 +260,104 @@ post_stim = 500;
 cmap1 = parula(length(vc_list1));
 cmap2 = gray(length(vc_list1));
 
-
-for p = 1:length(vc_list1)
-    vc_cf = vc_list1(p);
-    
-    for r = 1:nreps
-        
-        trial_dur = pre_stim + stim_dur + post_stim;% + post_stim;
-        DD(r+(p-1)*nreps).data = zeros(length(good_list),trial_dur);
-        DD(r+(p-1)*nreps).condition = num2str(vc_cf,'%05.2f');
-        DD(r+(p-1)*nreps).epochStarts = [1,pre_stim,pre_stim+stim_dur];
-        DD(r+(p-1)*nreps).epochColors = [0.7, 0.7, 0.7;cmap1(p,:);cmap2(p,:)];
-        for n = 1:length(good_list)
-            switch vocal_type
-                case {0, 01, 02}
-                    vc_ind = find(round(SUrate{good_list(n)}{1}.xb.stimulus_ch1(:,8)) == round(vc_cf*1e3));
-                case {10,11, 12}
-                    vc_ind = find(SUrate{good_list(n)}{1}.xb.stimulus_ch1(:,10) == vc_cf);
-                case {21, 22}
-                    vc_ind = find(SUrate{good_list(n)}{1}.stim(:,1) == vc_cf & SUrate{good_list(n)}{1}.stim(:,2) == vc_fmr_list(vc_fmr_ind));
-                    vc_ind2 = vc_ind+1;
-                    %                     vc_ind2 = find(SUrate{good_list(n)}{1}.stim(:,1) == vc_cf & SUrate{good_list(n)}{1}.stim(:,2) == vc_fmr_list(vc_fmr_ind+1));
-                    if isempty(vc_ind)
-                        [~,vc_ind]=min(abs(SUrate{good_list(n)}{1}.stim(:,2)-vc_fmr));
-                        vc_ind = vc_ind+(p-1)*length(unique(SUrate{good_list(n)}{1}.stim(:,2)));
-                        vc_ind2 = vc_ind +1;
-                    end
-                case {31, 32}
-                    SUrate{good_list(n)}{1}.stim(:,1) = round(SUrate{good_list(n)}{1}.stim(:,1)*1e2)/1e2;
-                    vc_ind = find(SUrate{good_list(n)}{1}.stim(:,1) == vc_cf & SUrate{good_list(n)}{1}.stim(:,2) == vc_ipi);
-            end
+switch vocal_type
+    case {0, 01, 02, 10, 11, 12}
+        for p = 1:length(vc_list1)
+            vc_cf = vc_list1(p);
             
-            if vocal_type == 21 || vocal_type == 22 % attempting to group 0 ~1SD together
-                PSTH_group = (SUrate{good_list(n)}{1}.PSTH{vc_ind}(r,1:trial_dur) + SUrate{good_list(n)}{1}.PSTH{vc_ind2}(r,1:trial_dur))/2;
-                DD(r+(p-1)*nreps).data(n,:) = round(PSTH_group*1e-3);
-            else
-                DD(r+(p-1)*nreps).data(n,:) = round(SUrate{good_list(n)}{1}.PSTH{vc_ind}(r,1:trial_dur)*1e-3);
+            for r = 1:nreps
+                
+                trial_dur = pre_stim + stim_dur + post_stim;% + post_stim;
+                DD(r+(p-1)*nreps).data = zeros(length(good_list),trial_dur);
+                DD(r+(p-1)*nreps).condition = num2str(vc_cf,'%05.2f');
+                DD(r+(p-1)*nreps).epochStarts = [1,pre_stim,pre_stim+stim_dur];
+                DD(r+(p-1)*nreps).epochColors = [0.7, 0.7, 0.7;cmap1(p,:);cmap2(p,:)];
+                for n = 1:length(good_list)
+                    switch vocal_type
+                        case {0, 01, 02}
+                            vc_ind = find(round(SUrate{good_list(n)}{1}.xb.stimulus_ch1(:,8)) == round(vc_cf*1e3));
+                        case {10,11, 12}
+                            vc_ind = find(SUrate{good_list(n)}{1}.xb.stimulus_ch1(:,10) == vc_cf);
+                        case {21, 22}
+                            vc_ind = find(SUrate{good_list(n)}{1}.stim(:,1) == vc_cf & SUrate{good_list(n)}{1}.stim(:,2) == vc_fmr_list(vc_fmr_ind));
+                            vc_ind2 = vc_ind+1;
+                            %                     vc_ind2 = find(SUrate{good_list(n)}{1}.stim(:,1) == vc_cf & SUrate{good_list(n)}{1}.stim(:,2) == vc_fmr_list(vc_fmr_ind+1));
+                            if isempty(vc_ind)
+                                [~,vc_ind]=min(abs(SUrate{good_list(n)}{1}.stim(:,2)-vc_fmr));
+                                vc_ind = vc_ind+(p-1)*length(unique(SUrate{good_list(n)}{1}.stim(:,2)));
+                                vc_ind2 = vc_ind +1;
+                            end
+%                         case {31, 32}
+%                             SUrate{good_list(n)}{1}.stim(:,1) = round(SUrate{good_list(n)}{1}.stim(:,1)*1e2)/1e2;
+%                             vc_ind = find(SUrate{good_list(n)}{1}.stim(:,1) == vc_cf & SUrate{good_list(n)}{1}.stim(:,2) == vc_ipi);
+                    end
+                    
+                    if vocal_type == 21 || vocal_type == 22 % attempting to group 0 ~1SD together
+                        PSTH_group = (SUrate{good_list(n)}{1}.PSTH{vc_ind}(r,1:trial_dur) + SUrate{good_list(n)}{1}.PSTH{vc_ind2}(r,1:trial_dur))/2;
+                        DD(r+(p-1)*nreps).data(n,:) = round(PSTH_group*1e-3);
+                    else
+                        DD(r+(p-1)*nreps).data(n,:) = round(SUrate{good_list(n)}{1}.PSTH{vc_ind}(r,1:trial_dur)*1e-3);
+                    end
+                end
             end
         end
-    end
+        
+        
+    case{21,22}
+        for p = 1:length(vc_list1)
+            for v = 1:length(vc_list2)
+                vc_cf = vc_list1(p);
+                vc_fmr = vc_list2(v);
+                for r = 1:nreps
+                    trial_dur = pre_stim + stim_dur + post_stim;% + post_stim;
+                    DD(r+(p-1)*nreps*length(vc_list2) + (v-1)*nreps).data = zeros(length(good_list),trial_dur);
+                    DD(r+(p-1)*nreps*length(vc_list2) + (v-1)*nreps).condition = num2str(vc_cf,'%05.2f');
+                    DD(r+(p-1)*nreps*length(vc_list2) + (v-1)*nreps).epochStarts = [1,pre_stim,pre_stim+stim_dur];
+                    DD(r+(p-1)*nreps*length(vc_list2) + (v-1)*nreps).epochColors = [0.7, 0.7, 0.7;cmap1(p,:);cmap2(p,:)];
+                    for n = 1:length(good_list)
+                        vc_ind = find(SUrate{good_list(n)}{1}.stim(:,1) == vc_cf & SUrate{good_list(n)}{1}.stim(:,2) == vc_fmr);
+                        if isempty(vc_ind)
+                            [~,vc_ind]=min(abs(SUrate{good_list(n)}{1}.stim(:,2)-vc_fmr));
+                            vc_ind = vc_ind+(p-1)*length(unique(SUrate{good_list(n)}{1}.stim(:,2)));
+                        end
+                        PSTH_group = (SUrate{good_list(n)}{1}.PSTH{vc_ind}(r,1:trial_dur) + SUrate{good_list(n)}{1}.PSTH{vc_ind+1}(r,1:trial_dur))/2;
+                        DD(r+(p-1)*nreps*length(vc_list2)).data(n,:) = round(PSTH_group*1e-3);
+                        
+                        
+                    end
+                end
+            end
+        end
+        
+    case {31, 32}
+        for p = 1:length(vc_list1)
+            for v = 1:length(vc_list2)
+                vc_cf = vc_list1(p);
+                vc_ipi = vc_list2(v);
+                
+                for r = 1:nreps
+                    
+                    trial_dur = pre_stim + stim_dur + post_stim;% + post_stim;
+                    DD(r+(p-1)*nreps*length(vc_list2) + (v-1)*nreps).data = zeros(length(good_list),trial_dur);
+                    DD(r+(p-1)*nreps*length(vc_list2) + (v-1)*nreps).condition = num2str(vc_cf,'%05.2f');
+                    DD(r+(p-1)*nreps*length(vc_list2) + (v-1)*nreps).epochStarts = [1,pre_stim,pre_stim+stim_dur];
+                    DD(r+(p-1)*nreps*length(vc_list2) + (v-1)*nreps).epochColors = [0.7, 0.7, 0.7;cmap1(p,:);cmap2(p,:)];
+                    for n = 1:length(good_list)
+                        
+                        SUrate{good_list(n)}{1}.stim(:,1) = round(SUrate{good_list(n)}{1}.stim(:,1)*1e2)/1e2;
+                        vc_ind = find(SUrate{good_list(n)}{1}.stim(:,1) == vc_cf & SUrate{good_list(n)}{1}.stim(:,2) == vc_ipi);
+                        DD(r+(p-1)*nreps*length(vc_list2) + (v-1)*nreps).data(n,:) = round(SUrate{good_list(n)}{1}.PSTH{vc_ind}(r,1:trial_dur)*1e-3);
+                    end
+                end
+                
+                
+                
+            end
+        end
+        
+        
 end
+
 
 
 

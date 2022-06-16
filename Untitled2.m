@@ -1,15 +1,15 @@
 %% Pool data
 
-clear all
+% clear all
 Pool = {};
 rate = {};
 raster = {};
 
 
 % [Pool{1}, rate{1}, raster{1}] = pool_data(2320,[1:5],40,60);
-% [Pool{1}, rate{1}, raster{1}] = pool_data(1,[1:5],60,1180);
+[Pool{1}, rate{1}, raster{1}] = pool_data(1,[2:3],60,1180);
 % [Pool{2}, rate{2}, raster{2}] = pool_data(104,8,40);
-[Pool{1}, rate{1}, raster{1}] = pool_data(2335,10,40);
+% [Pool{1}, rate{1}, raster{1}] = pool_data(1,[10],40);
 % [Pool{4}, rate{4}, raster{4}] = pool_data(62,8,40);
 % [Pool{5}, rate{5}, raster{5}] = pool_data(2343,[12,13],40);
 
@@ -18,13 +18,13 @@ pause(0.1)
 SUrate = {};
 SUrate = get_tuning(Pool,rate,raster,0);
 % use ana2Dstim for m60F, and ana2Dstimv2 for m160E
-% SUrate = ana_2Dstim(Pool,rate,raster,0,'trill1');
+SUrate = ana_2Dstimv2(Pool,rate,raster,0,'twitter');
 % 
 %%
 % close all
 % CHANGE NAME %
 % save('E:\DATA\ana_population\Dynamics_SUrate\PT_A1.mat','SUrate','-v7.3','-nocompression');
-save('E:\DATA\combined\ana_population\Dynamics_SUrate\AL_Twitter.mat','SUrate','-v7.3','-nocompression');
+save('E:\DATA\combined\ana_population\Dynamics_SUrate\Trill_AL_3ani.mat','SUrate','-v7.3','-nocompression');
 %% Extracting waveforms directly from units
 
 

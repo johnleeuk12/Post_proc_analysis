@@ -1,9 +1,49 @@
 function create_map()
-
+%% map out analysis results using C and D
 animal_name = 'M56E';
+
+%rotation
+% if right hemisphere
+theta = -27;
+% if left hemisphere
+%         theta = 27;
+
 addpath('C:\Users\John.Lee\Documents\GitHub\Post_proc_analysis\util');
 load(fullfile('D:\DATA', filesep, animal_name, filesep,'HT_position\D_tonotopy.mat'));
 global D C
+
+%% Create track positions for stim panels 03/26/2022
+% comment out when plotting tonotopy figures
+
+% mat = [
+% 1	2
+% 1	4
+% 1	5
+% 2	5
+% 2	8
+% 3	2
+% 3	3
+% 3	5
+% 3	7
+% 5	2
+% 5	3
+% 5	5
+% 
+% ];
+% 
+% h_list = unique(mat(:,1));
+% 
+% C = {};
+% for h = 1:length(h_list)
+%     t_list = unique(mat(find(mat(:,1) == h_list(h)),2));
+%     for tr = 1:length(t_list)
+%         %         freq_range = mat(find(mat(:,1) == h_list(h)),3);
+%         
+%         %     C.H{1,h_list(h)}{1,t_list(tr)} = freq_range(tr);
+%         C.H{1,h_list(h)}{1,t_list(tr)} = 1;
+%     end
+% end
+%     
 
 %% colormap
 
@@ -30,7 +70,7 @@ figure(1)
 hold off
 
 
-f = imread([file_dir, animal_name,'_chb2.png']);
+f = imread([file_dir, animal_name,'_imaging.png']);
 imshow(f);
 % imshow(ones(size(f,1),size(f,2),3))
 hold on
@@ -49,13 +89,7 @@ for n = 1:N_holes
         end
         posi = (trackposi-center)/D.Ephys.CoorTrackH{n}.holeextx;
 %         posi(:,2) = -posi(:,2);
-        
-        %rotation
-        % if right hemisphere
-        theta = -27;
-        % if left hemisphere
-%         theta = 27;
-        
+
         R=[cosd(theta) -sind(theta); sind(theta) cosd(theta)];
         posi = posi*R';
         
@@ -66,12 +100,17 @@ for n = 1:N_holes
         if ~isempty(C.H{1,n})
             for tr = 1:length(C.H{1,n})
                 if ~isempty(C.H{1,n}{1,tr})
-                    V = C.H{1,n}{1,tr}.minlat.med-200; %-C.H{1,n}{1,tr}.minlat.med;%/(32*1e3); % change here to change variable
+                    % use this to check number of tracks for a given stim
+                    V = C.H{1,n}{1,tr};
+                    scatter(posi(tr,1),posi(tr,2),100,V,'k');
+                    % end
+                    
+%                     V = C.H{1,n}{1,tr}.minlat.med-200; %-C.H{1,n}{1,tr}.minlat.med;%/(32*1e3); % change here to change variable
                     
 %                                         V = log2(V/440)*12;
 %                     V = log2(V*1e-3);
                     
-                    scatter(posi(tr,1),posi(tr,2),100,V,'filled','MarkerFaceAlpha',0.7);
+%                     scatter(posi(tr,1),posi(tr,2),100,V,'filled','MarkerFaceAlpha',0.7);
                     
                 end
                 
@@ -85,13 +124,13 @@ for n = 1:N_holes
 end
 % 
 % colormap(flipud(parula))
-colormap(parula)
-caxis([0 200]);
-colorbar
+% colormap(parula)
+% caxis([0 1]);
+% colorbar
 
 
 
 
-% colormap(squeeze(G.A_CM_RGB(1,:,:)))
-% caxis([-1 5])
+colormap(squeeze(G.A_CM_RGB(1,:,:)))
+caxis([-1 5])
 

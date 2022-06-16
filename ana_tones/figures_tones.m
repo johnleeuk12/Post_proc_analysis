@@ -1,9 +1,9 @@
 function figures_tones(out)
-
+%% create variables B and C 
 
 N_list = out.data{1,1}(:,1);
 
-animal_name = 'M56E';
+animal_name = 'M160E';
 
 % B : best dB, BF, peak lat, FR, min lat,
 
@@ -37,6 +37,38 @@ for n = 1:length(N_list)
     end
 end
 
+% ind = find(out.data{1}(:,2) == 3 & out.data{1}(:,3) ~= 3 );
+% 
+% B1 = B(1:ind(1)-1,:);
+% B2 = B(ind(end)+1:end,:);
+% B = [B1;B2];
+% 
+% median(B(:,4),'omitnan');
+%% plot distribution of best frequency using B
+
+figure(10)
+edges = logspace(3,4.5,100);
+
+nan_ind = ~isnan(B(:,6));
+histogram(B(nan_ind,2),edges);
+[count, ~] = histcounts(B(nan_ind,2),edges);
+
+
+
+hold on 
+edges2 = (edges(2:end)+edges(1:99))/2;
+plot(edges2,smoothdata(count,'gaussian',10),'Linewidth',2);
+xticks([1e3 : 2.5*1e3:3*1e4])
+% set(gca,'xticklabel',num2str(get(gca,'xtick')/1e3','%.1f'))
+xticklabels(num2str(get(gca,'xtick')'/1e3))
+xlabel('kHz')
+set(gca,'xscale','log')
+title(['n = ' num2str(sum(nan_ind))])
+hold off
+
+
+
+
 %% 01/03/2022 Find noise responses using B and N_list
 
 out2 = ana_noise([1:5],animal_name,B,N_list,500);
@@ -58,7 +90,8 @@ for n = 1:length(N_list)
         if ~isempty(out.data{1,db_ind}{n,1})
             X = out.data{1,db_ind}{n,6};
             X2 = imgaussfilt(X,[3,20],'Padding',0); %,'Padding','circular');
-            X2 = X2-mean2(X2(:,1:150)); % removing spont rate
+            X2 = X2-mean2(X2(:,1:150)); % removing spont rate            
+            
             p = 1;
             
             for tf = 201%:100:401
@@ -104,6 +137,56 @@ for n = 1:length(N_list)
     end
 end
             
+
+%% combine B across animals 
+B1 = B;
+B2 = B;
+B = [B1;B2];
+
+
+%%
+
+load('E:\DATA\Combined\ana_pure_tones\B_A1.mat');
+B1 = B;
+load('E:\DATA\Combined\ana_pure_tones\B_AB.mat');
+B2 = B;
+% B2 =B;
+% B1 = B;
+notnan2 = ~isnan(B2(:,6));
+% notnan2 = true(length(B2),1);
+ % only for db
+% notone = B2(:,7)>1;
+% notnan2 = notone & notnan2;
+
+statsAB= {};
+stat_ind = 8;
+statsAB.med = median(B2(notnan2,stat_ind),'omitnan');
+statsAB.mean = mean(B2(notnan2,stat_ind),'omitnan');
+statsAB.std = std(B2(notnan2,stat_ind),'omitnan');
+
+notnan1 = ~isnan(B1(:,6));
+% notnan1 = true(length(B1),1);
+ % only for db
+% notone = B1(:,7)>1;
+% notnan1 = notone & notnan1;
+
+statsA1= {};
+% stat_ind = 3;
+statsA1.med = median(B1(notnan1,stat_ind),'omitnan');
+statsA1.mean = mean(B1(notnan1,stat_ind),'omitnan');
+statsA1.std = std(B1(notnan1,stat_ind),'omitnan');
+
+p = ranksum(B1(notnan1,stat_ind),B2(notnan2,stat_ind));
+%%
+edges = 0:2:400;
+[count2,~] = histcounts(B2(notnan2,6)-200,edges);
+[count1,~] = histcounts(B1(notnan1,6)-200,edges);
+
+plot(edges(2:end),smoothdata(count1,'gaussian',10),'Linewidth',2)
+hold on
+plot(edges(2:end),smoothdata(count2,'gaussian',10),'Linewidth',2)
+hold off
+
 
 
 
@@ -151,7 +234,7 @@ for h = 1:length(H_list)
         C.H{H_list(h)}{htracks(ht)}.minlat.med = median(B(ht_ind,6),'omitnan');
         C.H{H_list(h)}{htracks(ht)}.minlat.std = std(B(ht_ind,6),'omitnan');
         
-        C.H{H_list(h)}{htracks(ht)}.bestdB.mean = mean(B(ht_ind,7),'omitnan');
+        C.H{H_list(h)}{htracks(ht)}.bestdB.mean = mean(B(ht_ind,7),'omitnan'); % wrong! best db is 1
         C.H{H_list(h)}{htracks(ht)}.bestdB.median = median(B(ht_ind,7),'omitnan');
         
         C.H{H_list(h)}{htracks(ht)}.multipeak.mean = mean(B(ht_ind2,8),'omitnan');
@@ -183,14 +266,16 @@ Core.params.N = 0;
 Core.params.out_ind = [];
 Core.params.out_ind2 = [];
 Core.params.out_ind3 = [];
-Core.params.list = [5,6,15,16];
+Core.params.list = [];
+% Core.params.list = [5,6,15,16];
 % Core.params.list = [2,3,6];
 
 
 Belt.params.N = 0;
 Belt.params.out_ind = [];
 Belt.params.out_ind2 = [];
-Belt.params.list = [4,10,11,14];
+Belt.params.list = 1:5;
+% Belt.params.list = [4,10,11,14];
 % Belt.params.list = [7:10];
 % out_ind1 is for units with peak detected 
 % out_ind2 is for units with min_lat. these two are different ways of
@@ -225,7 +310,7 @@ Core.N_PT_resp2 =length(Core.params.out_ind2);
 %change k_ind to plot different properties
 
 % edges = 0:0.1:10; %ms
-% k_ind = 5;
+k_ind = 5;
 for h = Core.params.list
 figure
 ind2 = find(out.data{1,1}(Core.params.out_ind2,2) ==h);
@@ -246,7 +331,7 @@ end
 
 
 %%
-
+k_ind = 6;
 for h = Belt.params.list
 figure
 ind2 = find(out.data{1,1}(Belt.params.out_ind2,2) ==h);
@@ -264,11 +349,11 @@ end
 %%
 
 edges = 0:10:200; %ms
-k_ind =7;
+k_ind =1;
 figure(10)
 histogram(C.pool.data(Core.params.out_ind2,k_ind),edges)
 hold on
-histogram(C.pool.data(Belt.params.out_ind2,k_ind),edges)
+histogram(C.pool.data(Belt.params.out_ind2,k_ind)-200,edges)
 
 hold off
 title([num2str(median(C.pool.data(Core.params.out_ind2,k_ind),'omitnan')),'      ', ...
@@ -279,7 +364,7 @@ title([num2str(median(C.pool.data(Core.params.out_ind2,k_ind),'omitnan')),'     
 
 disp(['mean A1:', num2str(mean(C.pool.data(Core.params.out_ind2,k_ind),'omitnan')),...
         '+', num2str(std(C.pool.data(Core.params.out_ind2,k_ind),'omitnan'))]);
-disp(['mean A1:', num2str(mean(C.pool.data(Belt.params.out_ind2,k_ind),'omitnan')),...
+disp(['mean AB:', num2str(mean(C.pool.data(Belt.params.out_ind2,k_ind),'omitnan')),...
         '+', num2str(std(C.pool.data(Belt.params.out_ind2,k_ind),'omitnan'))]);
     
 p = ranksum(C.pool.data(Core.params.out_ind2,k_ind),C.pool.data(Belt.params.out_ind2,k_ind))

@@ -5,6 +5,11 @@ Here we attempt to calculate the correlation of time-variant activity
 stimuli
 %}
 
+addpath('C:\Users\John.Lee\Documents\GitHub\DataHigh\util');
+addpath('C:\Users\John.Lee\Documents\GitHub\DataHigh\gpfa\util');
+addpath('util');
+
+
 mean_thresh= 1;
 m = mean([DD.data],2)*1e3;
 keep_neurons = m >= mean_thresh;
@@ -24,11 +29,11 @@ TD = [];
 %     end
 % end
 
-% %smoothened TD
+%smoothened TD
 binwidth = 20; %ms
-PreStim = floor(PreStim/binwidth);
-PostStim = floor(PostStim/binwidth);
-stim_dur = floor(stim_dur/binwidth);
+% PreStim = floor(PreStim/binwidth);
+% PostStim = floor(PostStim/binwidth);
+% stim_dur = floor(stim_dur/binwidth);
 
 %%
 smooth_bin = 20;
@@ -55,23 +60,46 @@ end
 %% average correlation
 
 
-tpoint = [PreStim,PreStim+stim_dur];
-% tpoint = [0,PreStim];
-% tpoint = [PreStim+stim_dur,PreStim+stim_dur+PostStim];
-TD_av = mean(TD(:,:,tpoint(1):tpoint(2)),3);
+% tpoint = [PreStim,PreStim+stim_dur];
+% % tpoint = [0,PreStim];
+% % tpoint = [PreStim+stim_dur,PreStim+stim_dur+PostStim];
+% TD_av = mean(TD(:,:,tpoint(1):tpoint(2)),3);
+% 
+% [CorrMatrix,P] = corrcoef(TD_av.','Rows','complete');
+% for r = 1:length(CorrMatrix)^2
+%     if P(r) > 0.05 && CorrMatrix(r) ~=1
+%         CorrMatrix(r) = 0;
+%     end
+% end
+% 
+% figure(56)
+% colormap(flipud(hot))
+% SD_range = [-5:0.25:5];
+% % imagesc(stim_set,[-5:0.25:5],CorrMatrix)
+% imagesc(stim_set,SD_range,CorrMatrix);
+% % caxis([0, 1]);
 
-[CorrMatrix,P] = corrcoef(TD_av.','Rows','complete');
-for r = 1:length(CorrMatrix)^2
-    if P(r) > 0.05 && CorrMatrix(r) ~=1
-        CorrMatrix(r) = 0;
+
+%% average correlation, time sequence April 2022
+
+tpoint = [PreStim,PreStim+stim_dur];
+TD_av = TD(:,:,tpoint(1):tpoint(2));
+CorrMatrix = zeros(stim_num,stim_num);
+for st1 = 1:stim_num
+    for st2 = 1:stim_num
+        [CM,P] = corrcoef(TD_av(st1,:,:),TD_av(st2,:,:),'Rows','complete');
+        if P(1,2) > 0.05 && CM(1,2) ~= 1
+            CM(1,2) = 0;
+        end
+        CorrMatrix(st1,st2) = CM(1,2);
     end
 end
-
+        
 figure(56)
 colormap(flipud(hot))
-% imagesc(stim_set,[-5:0.25:5],CorrMatrix)
-imagesc(stim_set,[-1:0.5:5],CorrMatrix);
-
+SD_range = [-5:0.5:1];
+imagesc(stim_set,SD_range,CorrMatrix)
+% caxis([0,1]);
 
 
 
@@ -96,8 +124,8 @@ end
 error_corr1 = error_corr/stim_num;
 
 figure(58)
-% errorbar([-1:0.5:5], mean_corr,error_corr1)
-errorbar([-1:0.5:5],movmean(mean_corr,3),movmean(error_corr1,3));
+errorbar(SD_range, mean_corr,error_corr1)
+% errorbar(SD_range,movmean(mean_corr,3),movmean(error_corr1,3));
 hold on
 % axis([-5 1 0.1 0.15])
 

@@ -1,4 +1,11 @@
 function Create_tonotopy()
+%% Create the variable D from craniotomy images
+%{ 
+03/29/2022 JHL
+Derived from XDS's code for image processing 
+ %}
+
+
 
 global D
 D = [];

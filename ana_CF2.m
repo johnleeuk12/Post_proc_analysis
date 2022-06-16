@@ -15,7 +15,7 @@ end
 %%
 
 tracks = unique([X.Track]);
-edges = logspace(3,4.5,50);
+edges = logspace(3,5,100);
 figure
 cf_mean = [];
 for t = 1:length(tracks)

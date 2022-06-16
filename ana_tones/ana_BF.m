@@ -16,23 +16,10 @@ the sixth column is the stimulus set.
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 %% CF analysis 03/07/2021
 % load('M60F_unit_list_new.mat');
 % animal_name = 'M160E';
-% H_nb = 4;
+% H_nb = 6;
 % db_ind = 2;4 is 20db % 3 is 40db, 2 is 60db 1 is 80 db
 
 % edges = logspace(3,4.5,25);
@@ -131,10 +118,11 @@ for H_nb = H_nb_list
                             stim_freq = ana_PT{db_ind2,db_ind1}.xb.stimulus_ch1(:,8);
                             
                             X = [];
+                            X5 = []; % X5 is for rasterplot
                             for st = 1:length(stim_freq)
                                 %                         X = [X; mean(ana_PT{db_ind}.PSTH{st},1)-mean(ana_PT{db_ind}.spont)];
                                 X = [X; mean(ana_PT{db_ind2,db_ind1}.PSTH{st},1)]; %-mean(ana_PT{db_ind}.spont)]
-                                
+                                X5 = [X5;ana_PT{db_ind2,db_ind1}.PSTH{st}];
                             end
                             
                             %                     spont_std = std2(X2(:,1:150));
@@ -229,19 +217,33 @@ for H_nb = H_nb_list
                             end
                             if figure_on == 1
                                 subplot(1,4,db_ind1)
-                                
-                                % creating figures
-                                imagesc(X2);
-                                hold on
-                                rectangle('Position',[200 0 100 size(X2,1)],'LineWidth',2)
-                                if ~isempty(BF_ind)
-                                    scatter(pos,BF_ind,100,'rp','filled')
-                                    if ~isempty(min_lat_pool)
-                                        scatter(min_lat{db_ind1},BF_ind,100,'cp','filled')
-                                    end
+                                hold off
+                                % creating rasterplots 04/28/2022
+                                [row,col] = find(X5>0);
+                                rectangle('Position',[200 0 100 size(X5,1)],'FaceColor',[0.9,0.9,0.9],'EdgeColor','none')
+                                hold on 
+                                scatter(col,row,10,'ok','filled')
+                                nreps = size(X5,1)/length(stim_freq);
+                                yticks([1:nreps*2:size(X5,1)]+10)
+                                stim_ticks = {};
+                                for st = 1:length(stim_freq)
+                                    stim_ticks{st} = num2str(round(stim_freq(st)*1e-2)*1e-1);
                                 end
-                                
-                                caxis([min(min(X2)),max(max(X2))])
+                                yticklabels(stim_ticks(1:2:end));
+                                axis([0 size(X5,2) 0 size(X5,1)+1])
+%                                 Figure creation for smoothened
+%                                 % creating figures
+%                                 imagesc(X2);
+%                                 hold on
+%                                 rectangle('Position',[200 0 100 size(X2,1)],'LineWidth',2)
+%                                 if ~isempty(BF_ind)
+%                                     scatter(pos,BF_ind,100,'rp','filled')
+%                                     if ~isempty(min_lat_pool)
+%                                         scatter(min_lat{db_ind1},BF_ind,100,'cp','filled')
+%                                     end
+%                                 end
+%                                 
+%                                 caxis([min(min(X2)),max(max(X2))])
                                 title([out.tags{db_ind1+1} 'db'])
                             end
                             % creating figures end
@@ -310,6 +312,7 @@ for H_nb = H_nb_list
         %     hold on
         %     [N_count, edges] =histcounts(BF_pool,edges);
         %     plot(new_edges,N_count);
+        pause
     end
     
 end

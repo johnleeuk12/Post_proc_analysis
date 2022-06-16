@@ -1,12 +1,16 @@
 function [newD, C, lat,explained,keep_neurons] = ana_reducedims2(D, dims,smooth_bin,low_f)  
+tic
 
-addpath('C:\Users\John.Lee\Documents\GitHub\DataHigh\util');
-addpath('C:\Users\John.Lee\Documents\GitHub\DataHigh\gpfa\util');
+addpath('C:\Users\John.Lee\Documents\GitHub\DataHigh');
+addpath('C:\Users\John.Lee\Documents\GitHub\DataHigh\gpfa');
 addpath('util');
 % D = DD;
 % dims = 1:10;
 
 % remove low firing rate neurons
+
+fprintf(['removing low firing rate neurons ... time : %6.2f sec \n'],toc')
+
 mean_thresh= low_f;
 m = mean([D.data],2)*1e3;
 keep_neurons = m >= mean_thresh;
@@ -29,6 +33,7 @@ end
 binWidth =min(20, min_trial_length);
 use_sqrt = 0;
 
+fprintf(['gathering spikes ... time : %6.2f sec \n'],toc')
 
 % gather spikes in 20ms bins. 
 if (binWidth ~= 1 || use_sqrt)
@@ -43,6 +48,7 @@ if (binWidth ~= 1 || use_sqrt)
 end
 
 
+fprintf(['trial average and normalizing ... time : %6.2f sec \n'],toc')
 
 % Trial-average neural trajectories
 D = trial_average(D);
@@ -60,7 +66,11 @@ if smooth_bin ~= 1
 end
 %
 
-[newD, C, lat,explained] = PCAreduce(D,dims);
+% [newD, C, lat,explained] = PCAreduce(D,dims);
+[newD, C, lat,explained] = GPFAreduce(D,dims, binWidth);
+
+fprintf(['reduced dimensions ... time : %6.2f sec \n'],toc')
+
 
 end
 
@@ -88,26 +98,62 @@ function [newD, C, lat, explained] = PCAreduce(D,dims)
     lat = cumsum(lat(1:dims)) ./ sum(lat(1:dims));  % eigenvalues
 end
 
+function [newD, C, lat, explained] = GPFAreduce(D,dims, binWidth)
+% GPFAREDUCE Internal function for GPFA
+%   GPFAreduce(D,DIMS) returns a structure of the same form as D, except
+%   the data has been reduced with GPFA. All conditions and trials are
+%   considered together to get the best joint reduction. Code is based off
+%   of GPFAENGINE, by Byron Yu and John Cunningham.
+
+    wb = waitbar(0, 'Performing dim reduction with GPFA');
+    [params, newD] = gpfa_engineDH(D,dims,'dimreduce_wb',wb, 'binWidth', binWidth);
+    delete(wb);
+    C = params.Corth;
+    [~, lat, explained] = pcacov(params.C * params.C');
+    lat = cumsum(lat(1:dims))./sum(lat(1:dims));
+end
+
 function newD = normalize_D(D)
-    % removing common responses to enhance difference
-    N = size(D(1).data,1);
 
-    for n = 1:N
-        T = zeros(length(D),size(D(1).data,2));
-        for c = 1:length(D)
-            T(c,:) = D(c).data(n,:);
-        end
-
-        for c = 1:length(D)
-            
-            % without soft normalization
-%             D(c).data(n,:) = D(c).data(n,:)-mean(T,1); 
-            % with normalization
-            D(c).data(n,:) = (D(c).data(n,:)-mean(T,1))/max(max(abs(T-mean(T,1)))); 
-        end
+% % soft normalization after 4/5/22
+N = size(D(1).data,1);
+for n = 1:N
+    
+    T = zeros(length(D),size(D(1).data,2));
+    for c = 1:length(D)
+        T(c,:) = D(c).data(n,:);
     end
+    
+    T = T-max(max(T));
+    T = T-mean(T,1);
+    for c = 1:length(D)
+        D(c).data(n,:) = T(c,:);
+    end
+    
+    
+end
+newD = D;
 
-    newD = D;
+%     % before 4/5/2022
+%     % removing common responses to enhance difference
+%     N = size(D(1).data,1);
+% 
+%     for n = 1:N
+%         T = zeros(length(D),size(D(1).data,2));
+%         for c = 1:length(D)
+%             T(c,:) = D(c).data(n,:);
+%         end
+% 
+%         for c = 1:length(D)
+%             
+%             % without soft normalization
+% %             D(c).data(n,:) = D(c).data(n,:)-mean(T,1); 
+%             % with normalization
+%             D(c).data(n,:) = (D(c).data(n,:)-mean(T,1))/max(max(abs(T-mean(T,1)))); 
+%         end
+%     end
+% 
+%     newD = D;
 end
 
 function newD = trial_average(D)

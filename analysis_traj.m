@@ -7,7 +7,7 @@ nreps = 10;
 
 
 
-VT_code = 21;
+VT_code = 22;
 switch VT_code
     case 10
         stim_dur = 1180;
@@ -36,9 +36,9 @@ switch VT_code
         %         newDtraj = {};
         
         %         newDtraj = Dtraj(3:end);
-%         newDtraj(10:11) = Dtraj(1:2);
-%         Dtraj = {};
-%         Dtraj = newDtraj;
+        %         newDtraj(10:11) = Dtraj(1:2);
+        %         Dtraj = {};
+        %         Dtraj = newDtraj;
     case 22
         stim_dur = 406;
         stim_num = 13;
@@ -48,7 +48,9 @@ switch VT_code
         %         Dtraj_old = Dtraj;
         %         Dtraj(2:end) = Dtraj(1:end-1);
         %         Dtraj(1) = Dtraj_old(11);
-        stim_dur = 1161;
+        stim_dur_list = [1161, 1233:73:1890];
+        stim_dur = stim_dur_list(1);
+                
         trial_dur = stim_dur+PostStim+ PreStim;
         
         stim_num = 13;
@@ -58,8 +60,9 @@ switch VT_code
         
     case 32
         stim_num = 13;
-                stim_dur = 1161;
-
+        stim_dur_list = [1161, 1233:73:1890];
+        stim_dur = stim_dur_list(1);
+        
         stim_set = 2.37:0.735:11.19;
         zero_ind = 11;
         
@@ -69,7 +72,8 @@ trial_dur = stim_dur+PostStim+ PreStim;
 %%
 
 
-nrep = nreps;
+% nrep = nreps;
+nrep = 10;
 PSTH = zeros(stim_num,trial_dur);
 
 keep_neurons_ind = find(keep_neurons == 1);
@@ -82,7 +86,7 @@ for st = 1:stim_num
     PSTH(st,:) = smoothdata(mean(cumu_data,1),'gaussian',200);
 end
 cmap = parula(stim_num);
-% cmap = flip(parula(stim_num));
+% cmap = flip(parula(stim_num)); % use for negative SD
 figure(53)
 for st = 1:2:stim_num
     plot([1:trial_dur]-PreStim,PSTH(st,:)*1e3,'Color',cmap(st,:),'LineWidth',2)
@@ -94,16 +98,16 @@ hold off
 % X = {};
 figure(30)
 % cmap = flip(parula(stim_num));
-cmap = parula(stim_num);
-for pc = 1:5
-    subplot(1,5,pc)
+% cmap = parula(stim_num);
+for pc = 1:10
+    subplot(2,5,pc)
     for st = 1:stim_num
         plot(1:length(Dtraj(st).data),smoothdata(Dtraj(st).data(pc,:),'gaussian',15),'Color',cmap(st,:));
         hold on
     end
 %     xline(15);
 %     xline(74);
-    axis([0, length(Dtraj(st).data),min(min(Dtraj(pc).data(pc,:))*2,-1.5),max(max(Dtraj(pc).data(pc,:))*2,1.5)])
+%     axis([0, length(Dtraj(st).data),min(min(Dtraj(st).data(pc,:))-0.5,-1.5),max(max(Dtraj(st).data(pc,:))+0.5,1.5)])
     title(['pc' num2str(pc)])
     hold off
 end
@@ -113,6 +117,8 @@ end
 % else_ind = 1:stim_num;
 % else_ind(zero_ind) = [];
 X = {};
+fi = {};
+
 for pc = 1:5
     X{pc}.data = zeros(stim_num,length(Dtraj(st).data));
     for st = 1:stim_num
@@ -121,8 +127,8 @@ for pc = 1:5
         end
     end
     X{pc}.data = X{pc}.data/(max(max(X{pc}.data))-min(min(X{pc}.data)));
-    fi = figure(pc);
-    set(fi, 'Position', [500 400 1500 600]);
+    fi{pc} = figure(pc);
+    set(fi{pc}, 'Position', [500 400 1500 600]);
     subplot(1,2,1)
     imagesc(stim_set,linspace(-300,trial_dur-300,length(Dtraj(st).data)),X{pc}.data.')
     colormap(parula)
@@ -144,21 +150,21 @@ epoch_starts = ceil(Dtraj(1).epochStarts/20);
 
 
 x_axis = stim_set;
-
+fig = {};
 for pc = 1:5
     %     subplot(2,4,pc)
     figure(pc);
     subplot(1,2,2)
     X{pc}.pre = mean(mean(X{pc}.data(:,1:epoch_starts(2)-1),2));
-    X{pc}.onset = mean(X{pc}.data(:,epoch_starts(2)+5:epoch_starts(3)),2);
-    %     X{pc}.mid = mean(X{pc}.data(:,epoch_starts(2)+10:epoch_starts(3)-5),2);
+    X{pc}.onset = mean(X{pc}.data(:,epoch_starts(2):epoch_starts(2)+5),2);
+    X{pc}.mid = mean(X{pc}.data(:,epoch_starts(2)+10:epoch_starts(3)-5),2);
     %     X{pc}.end = mean(X{pc}.data(:,epoch_starts(3):epoch_starts(3)+10),2);
-    X{pc}.offset = mean(X{pc}.data(:,epoch_starts(3)+5:epoch_starts(3)+15),2);
+    X{pc}.offset = mean(X{pc}.data(:,epoch_starts(3):epoch_starts(3)+20),2);
     
     
     plot(x_axis, X{pc}.onset,'-g','LineWidth',2)
     hold on
-    %     plot(x_axis, X{pc}.mid)
+    plot(x_axis, X{pc}.mid,'-b','LineWidth',2)
     %     plot(x_axis, X{pc}.end)
     plot(x_axis, X{pc}.offset,'-r','LineWidth',2)
     yline(X{pc}.pre,'--k');
@@ -168,17 +174,22 @@ for pc = 1:5
     hold off
     drawnow
     %     legend({'onset','mid','end','offset'})
-    legend('onset+sustained','offset')
+    legend('onset','sustained','offset')
 end
 
-
+%% save pc trace figures
+mkdir('E:\DATA\Combined\ana_dynamics\Phee\A1\LF');
+savedir = 'E:\DATA\Combined\ana_dynamics\Phee\A1\LF';
+for pc = 1:5
+    saveas(fi{pc},fullfile(savedir,filesep,['distance_pc',num2str(pc),'.fig']));
+end
 %% evaluation on units, variance explained, plotting PSTH for individual units
 figure(51)
-lat_T = explained(1:18);
+lat_T = explained(1:20);
 lat_T = cumsum(lat_T/sum(lat_T));
-plot(lat_T,'*k')
+scatter(1:20,lat_T)
 hold on
-yline(0.8)
+yline(0.8,'--k','LineWidth',2)
 
 
 %%
@@ -189,9 +200,12 @@ sel_pc = 3;
 figure(54)
 imagesc(C)
 lat_C = C(:,sel_pc);
-% plot(sort(lat_C));
-lat_C = abs(lat_C);
+figure(56)
+plot(sort(lat_C));
 
+
+lat_C = abs(lat_C);
+figure(55)
 [sorted_C, I] = sort(lat_C,'descend');
 norm_C = cumsum(sorted_C)/sum(sorted_C);
 plot(norm_C);
