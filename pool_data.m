@@ -1,20 +1,43 @@
 
 function [Pool, rate, raster] = pool_data(a_code,hole_number,varargin)
 
-%% Comments 
-% If a_code is 1, vargargin{1} should be dB attenuation (20,40,60)
+%{
+
+05/10/22 JHL
+This code allows the user to pool data from selected units. 
+Input: 
+    a_code: analysis code, identical to the xbz file
+    hole_number : craniotomy number. Also identical to the xbz file
+    varargin    : These additional inputs may be used if for the same analysis
+                    code there are stimuli sets with different parameters.
+                    For example, pure-tone stimuli may have been presented with
+                    different sound levels. 
+Output:
+    Pool        : matlab cell containing data for each pooled unit. Each cell
+                    contains data for one unit. Each cell also contains neuron_id
+                    as well as other information for that given unit. 
+    rate        : Contains simple firing rate data for each corresponding unit.
+                    Has prestim, duringstim and poststim firing rate as well as raw
+                    PSTH. That said, I recommend using get_tuning.m
+    raster      : Contains spiketimes in a structure that makes plotting
+                    rasterplots easier. 
+
+
+Comments: 
+    To add code for different analysis codes,( if the current code doesnt
+    work) simply follow the code structure, adding necessary steps for each
+    specific stimulus type.
+%} 
+
+
+
 
 animal_name = 'M160E';
 addpath(fullfile('D:\DATA', filesep, animal_name, filesep,'Units')); % path to Units
 addpath(fullfile('D:\DATA', filesep, animal_name, filesep,'Experiments')); %path to xbz files
 load([animal_name '_neurons_list.mat']);
 
-% addpath('D:\DATA\M12E\Units'); % path to units
-% addpath('D:\DATA\M12E\Experiments'); %path to xbz files
-% addpath('Y:\Units_Backup'); %path to units server
-% load('M12E_neurons_list.mat'); 
-% note, change neurons_list file from M12E_neurons_list to neurons_list;
-% change/ check for M12E_unit_list file file name variable names etc
+
 
 
 tic
@@ -66,9 +89,6 @@ toc
 
 
 
-
-
-
 % use the following code to correct errors in hole and track number in M60F
 % for i = 2278: 2472
 %    unit_list.data{i,8} = 4;
@@ -103,7 +123,8 @@ p = 1;
 Pool = {};
 tic
 
-
+% Puretones
+% varargin{1} is sound level and varargin{2} is stim duration
 if a_code == 1 || a_code == 62
     if varargin{2} <100
         dB = varargin{1};

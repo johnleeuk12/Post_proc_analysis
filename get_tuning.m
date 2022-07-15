@@ -1,8 +1,29 @@
 function SUrate = get_tuning(Pool, rate, raster, figure_on)
 %{
+
+05/10/22
 Despite what the function suggests, this is more than tuning:
-It takes multiple stimulus sets and compare what the same single unit does
-across 
+get_tuning can plot and compare unit responses across different stimuli. 
+
+Input:
+    Pool        : pool structure from pool_data.m users should run pool_data.m as
+                    below: 
+                [Pool{1}, rate{1}, raster{1}] = pool_data(1,[2:3],60,1180);
+                [Pool{2}, rate{2}, raster{2}] = pool_data(2320,[2:3],40);
+    figure_on   : set as 1 for figures. otherwise set as 0 
+
+Output:
+    mean        : average firing rate during stimulus
+    error =     : standard deviation during stim
+    spont = 	: spontaneous rate
+    raw =       : raw data during stimulus
+    PSTH =      : raw PSTH (probably the most useful for detailed analysis
+    nid =       : neuron id (to track neurons across stimuli sets
+    pid =       : id corresponding to the variable Pool
+    xb =        : xbz file 
+
+
+
 %}
 
 
@@ -37,23 +58,7 @@ for n = 1:length(N_list_int) % n is each neuron
         end
     end
     
-    % code is for real VS natural vocalizations
-    %checking for driven responses in ss = 2 pool
-%     ss = 2;
-    %     nat_ind = [1,3,5,8,10,11,13,15,17,19]; % for twitters only. seems like stim 4 and 5 were reversed
-%     nat_ind = 1:2:20;
-%     p = rec_list{ss}(1);
-%     N_stim = size(rate{ss}.stim{p},1);
-%     stim_av = mean(rate{ss}.stim{p},2);
-%     pre_std = std2(rate{ss}.pre{p});
-%     pre_av = mean2(rate{ss}.pre{p});
-%     
-%     check = stim_av(nat_ind)>pre_av+pre_std/sqrt(length(nat_ind));
-%     if mean(check)<0.1
-%         check_counter = 0;
-%     end
-%     
-       % ends here 
+
         
     
     if check_counter ==1
@@ -254,91 +259,4 @@ end
 
 
 
-            
-            
-% 
-%     
-%     if figure_on == 1
-%         if SUrate_1{n}.spont >0% && SUrate_2{n}.spont >1
-%             
-%             
-%             
-%             figure
-%             set(gcf, 'Position', [400 100 1700 800]);
-%             
-%             %Tuning cuve
-%             subplot(1,2,1)
-%             errorbar(stim_label_1,SUrate_1{n}.mean,SUrate_1{n}.error,'LineWidth',2);
-%             hold on
-%             plot(stim_label_1,ones(1,length(stim_label_1))*SUrate_1{n}.spont,'--k');
-%             
-%             if strcmp(plot_type,'User')
-%                 xticks(stim_label_1);
-%                 xticklabels(stim_name)
-%                 xtickangle(45)
-%             elseif strcmp(plot_type,'Tones')
-%                 set(gca,'xscale','log')
-%                 xticks(round((stim_label_1(1:4:end).')*1e-1)*1e1);
-%                 xticklabels(round(stim_label_1(1:4:end)*1e-1)*1e-2)
-%                 
-%                 xtickangle(45)
-%                 xlabel('kHz')
-%                 ylabel('firing rate (spikes/s)')
-%                 title('tuning curve')
-%                 
-%             end
-%             
-%             
-%             % Rasterplot
-%             subplot(1,2,2)
-%             PreStim = Pool_1(p).xb.pre_stimulus_record_time*1e-3; %s
-%             PostStim = Pool_1(p).xb.post_stimulus_record_time*1e-3; %s
-%             StimDur = Pool_1(p).xb.stimulus_ch1(:,5)*1e-3;
-%             
-%             nreps = Pool_1(p).xb.stimulus_ch1(1,4);
-%             nStim = max(Pool_1(p).xb.stimulus_ch1(:,1));
-%             %             nreps = 10;
-%             
-%             %
-%             % nStim = nStim + max(x2.stimulus_ch1(:,1));
-%             %
-%             TotalReps = nStim*nreps;
-%             
-%             
-%             
-%             for st = 1:length(StimDur)
-%                 rectangle('Position',[0 nreps*(st-1),StimDur(st) nreps],'FaceColor',[0.9,0.9,0.9],'EdgeColor','none')
-%             end
-%             hold on
-%             plot(raster_1.spikes{p},nreps*(raster_1.stim{p}-1)+raster_1.rep{p},'k.','MarkerSize',15);
-%             %     pause
-%             xlabel('time (s)')
-%             ylabel('Hz')
-%             yticks([1:nreps*2:TotalReps]+10)
-%             %             yticks([1:nreps*2:TotalReps]+10)
-%             stim_ticks = {};
-%             
-%             for stim = 1:length(stim_label_1)
-%                 %             stim_ticks{stim}=num2str(round(stim_label(stim)*10)/10);
-%                 stim_ticks{stim}=num2str(round(stim_label_1(stim)*10)/10);
-%             end
-%             if strcmp(plot_type,'User')
-%                 
-%                 yticks([1:nreps:TotalReps]+5)
-%                 
-%                 yticklabels(stim_name)
-%             else
-%                 yticklabels(stim_ticks(1:2:end))
-%             end
-%             axis([-PreStim max(StimDur) + PostStim 0 TotalReps+1])
-%             hold off
-%             title('rasterplot')
-%             
-%             sgtitle(['Ch' num2str(Pool_1(p).best_ch) ' H' num2str(Pool_1(p).hole_nb) 'T' num2str(Pool_1(p).track_nb)])
-%             
-%             
-%             drawnow
-%         end
-%     end
-%     
-% end
+ 
