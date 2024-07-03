@@ -30,7 +30,7 @@ the sixth column is the stimulus set.
 
 
 
-savedir = fullfile('E:\DATA',filesep,animal_name,filesep,'ana_tones\data');
+savedir = fullfile('D:\DATA',filesep,animal_name,filesep,'Analysis\ana_tones\data');
 addpath(savedir);
 load([savedir '\neurons_loc_tag.mat']);
 for l = 1:length(neurons_loc_tag)
@@ -56,6 +56,7 @@ db_lens = 0;
 for H_nb = H_nb_list
     hole_ind = find([neurons_loc_tag.hole_nb] == H_nb);
     tracks = unique([neurons_loc_tag(hole_ind).track_nb]);
+    
 
     % figure
     for t = 1:length(tracks)
@@ -66,6 +67,7 @@ for H_nb = H_nb_list
             nid = sub_n_list(n);
             PTname= 'PTn0000';
             PTname = [PTname(1:end-length(num2str(nid))) num2str(nid) '.mat'];
+            best_ch = neurons_loc_tag(nid).best_ch;
             try
                 load(PTname);
                 try
@@ -285,6 +287,7 @@ for H_nb = H_nb_list
                     out.data{1}(db_lens,1) = nid;
                     out.data{1}(db_lens,2) = H_nb;
                     out.data{1}(db_lens,3) = tracks(t);
+                    out.data{1}(db_lens,4) = best_ch;
                     
                     for db_ind1 = 1:4
                         out.data{db_ind1+1}{db_lens,1} = out_vec{db_ind1};
@@ -312,7 +315,7 @@ for H_nb = H_nb_list
         %     hold on
         %     [N_count, edges] =histcounts(BF_pool,edges);
         %     plot(new_edges,N_count);
-        pause
+         %pause
     end
     
 end

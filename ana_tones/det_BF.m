@@ -7,7 +7,7 @@ function det_BF(Pool, rate, raster,animal_name,figure_on)
 
 
 
-savedir = fullfile('E:\DATA',filesep,animal_name, filesep,'ana_tones\data');
+savedir = fullfile('D:\DATA',filesep,animal_name, filesep,'Analysis\ana_tones\data');
 
 try
     load([savedir '\neurons_loc_tag.mat']);
@@ -24,14 +24,23 @@ N_list = unique([Pool.neuron_nb]);
 N_list = N_list(2:end);
 SUrate = {};
 
+for p = 1:length(Pool)
+    if isempty(Pool(p).neuron_nb)
+        Pool(p).neuron_nb = -1;
+    end
+end
+
+
 for n = 1:length(N_list)
     rec_list = find([Pool.neuron_nb] == N_list(n));
     p = rec_list(1);
+
     neurons_loc_tag(Pool(p).neuron_nb).neuron_nb = Pool(p).neuron_nb;
     neurons_loc_tag(Pool(p).neuron_nb).hole_nb = Pool(p).hole_nb;
     neurons_loc_tag(Pool(p).neuron_nb).track_nb = Pool(p).track_nb;
     neurons_loc_tag(Pool(p).neuron_nb).animal_tag = Pool(p).xb.animal;
     neurons_loc_tag(Pool(p).neuron_nb).stim_matrix = zeros(2,12);
+    neurons_loc_tag(Pool(p).neuron_nb).best_ch = Pool(p).best_ch;
 end
 
 save([savedir '\neurons_loc_tag.mat'], 'neurons_loc_tag');

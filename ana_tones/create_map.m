@@ -1,6 +1,6 @@
 function create_map()
 %% map out analysis results using C and D
-animal_name = 'M56E';
+animal_name = 'M60F';
 
 %rotation
 % if right hemisphere
@@ -8,8 +8,10 @@ theta = -27;
 % if left hemisphere
 %         theta = 27;
 
-addpath('C:\Users\John.Lee\Documents\GitHub\Post_proc_analysis\util');
-load(fullfile('D:\DATA', filesep, animal_name, filesep,'HT_position\D_tonotopy.mat'));
+% addpath('D:\GitHub\Post_proc_analysis\util');
+load(fullfile('E:\DATA', filesep, animal_name, filesep,'HT_position\D_tonotopy.mat'));
+file_dir = fullfile('E:\DATA', filesep, animal_name, filesep,'HT_position\');
+
 global D C
 
 %% Create track positions for stim panels 03/26/2022
@@ -63,14 +65,13 @@ G.A_CM_RGB =  reshape(...
 %%
 N_holes = length(D.Ephys.CoorTrackH);
     
-    file_dir = fullfile('D:\DATA', filesep, animal_name, filesep,'HT_position\');
 
     
 figure(1)
 hold off
 
 
-f = imread([file_dir, animal_name,'_imaging.png']);
+f = imread([file_dir, animal_name,'_chb2_with_C.png']);
 imshow(f);
 % imshow(ones(size(f,1),size(f,2),3))
 hold on
@@ -101,16 +102,16 @@ for n = 1:N_holes
             for tr = 1:length(C.H{1,n})
                 if ~isempty(C.H{1,n}{1,tr})
                     % use this to check number of tracks for a given stim
-                    V = C.H{1,n}{1,tr};
-                    scatter(posi(tr,1),posi(tr,2),100,V,'k');
+                    V = C.H{1,n}{1,tr}.BF.mean;
+%                     scatter(posi(tr,1),posi(tr,2),100,V,'k');
                     % end
                     
 %                     V = C.H{1,n}{1,tr}.minlat.med-200; %-C.H{1,n}{1,tr}.minlat.med;%/(32*1e3); % change here to change variable
                     
-%                                         V = log2(V/440)*12;
+                                        V = log2(V/440)*12;
 %                     V = log2(V*1e-3);
                     
-%                     scatter(posi(tr,1),posi(tr,2),100,V,'filled','MarkerFaceAlpha',0.7);
+                    scatter(posi(tr,1),posi(tr,2),100,V,'filled','MarkerFaceAlpha',0.7);
                     
                 end
                 
@@ -123,14 +124,17 @@ for n = 1:N_holes
     end
 end
 % 
-% colormap(flipud(parula))
+colormap(flipud(parula))
+colormap(squeeze(G.A_CM_RGB(1,:,:)))
+
 % colormap(parula)
 % caxis([0 1]);
-% colorbar
+caxis([0 72]);
+colorbar
 
 
 
 
-colormap(squeeze(G.A_CM_RGB(1,:,:)))
-caxis([-1 5])
+% caxis([0 1]);
+% caxis([-1 5])
 

@@ -30,11 +30,14 @@ Comments:
 %} 
 
 
+ 
 
+animal_name = 'M60F';
+% addpath(fullfile('D:\DATA', filesep, animal_name, filesep,'Units')); % path to Units
+% addpath(fullfile('D:\DATA', filesep, animal_name, filesep,'Experiments')); %path to xbz files
 
-animal_name = 'M160E';
-addpath(fullfile('D:\DATA', filesep, animal_name, filesep,'Units')); % path to Units
-addpath(fullfile('D:\DATA', filesep, animal_name, filesep,'Experiments')); %path to xbz files
+addpath(fullfile('F:\DATA', filesep, animal_name, filesep,'Units')); % path to Units
+addpath(fullfile('F:\DATA', filesep, animal_name, filesep,'Experiments')); %path to xbz files
 load([animal_name '_neurons_list.mat']);
 
 

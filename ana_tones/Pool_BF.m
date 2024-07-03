@@ -1,4 +1,4 @@
-function [Pool, rate, raster] =  Pool_BF(hole_number,animal_name)
+function [Pool, rate, raster] =  Pool_BF(hole_number,animal_name,rate_ind)
 %%
 %{
 2/15/2021
@@ -8,8 +8,8 @@ determining BF and amplitude in response to PT and BP noise
 %% Loading data
 % run Pool_data for unit_list_new first
 % animal_name = 'M60F';
-addpath(fullfile('D:\DATA', filesep, animal_name, filesep,'Units')); % path to Units
-addpath(fullfile('D:\DATA', filesep, animal_name, filesep,'Experiments')); %path to xbz files
+addpath(fullfile('F:\DATA', filesep, animal_name, filesep,'Units')); % path to Units
+addpath(fullfile('F:\DATA', filesep, animal_name, filesep,'Experiments')); %path to xbz files
 load([animal_name '_neurons_list.mat']);
 load([animal_name '_unit_list_new.mat']);
 
@@ -147,109 +147,110 @@ rate.pre = {};
 rate.post = {};
 rate.PSTH = {};
 
-unique_neuron_list = unique([Pool.neuron_nb]);
-neuron_check_list = [];
-% figure
-for p = 1:length(Pool)
-    PreStim = Pool(p).xb.pre_stimulus_record_time*1e-3; %s
-    PostStim = Pool(p).xb.post_stimulus_record_time*1e-3; %s
-    
-    stim_info = Pool(p).xb.data(find(Pool(p).xb.data(:,3) == 1 & Pool(p).xb.data(:,4) == -1),:);
-    
-    
-    data_new = stim_info;
-    StimDur = Pool(p).xb.stimulus_ch1(:,5)*1e-3;
-    
-    nreps = Pool(p).xb.stimulus_ch1(1,4);
-    nStim = max(Pool(p).xb.stimulus_ch1(:,1));
-    %             nreps = 10;
-    
-    %
-    % nStim = nStim + max(x2.stimulus_ch1(:,1));
-    %
-    TotalReps = nStim*nreps;
-    false_start = length(Pool(p).stim_times)-TotalReps;
-    
-    while false_start <0
-        nreps = nreps-1;
+if rate_ind ==1
+    unique_neuron_list = unique([Pool.neuron_nb]);
+    neuron_check_list = [];
+    % figure
+    for p = 1:length(Pool)
+        PreStim = Pool(p).xb.pre_stimulus_record_time*1e-3; %s
+        PostStim = Pool(p).xb.post_stimulus_record_time*1e-3; %s
+
+        stim_info = Pool(p).xb.data(find(Pool(p).xb.data(:,3) == 1 & Pool(p).xb.data(:,4) == -1),:);
+
+
+        data_new = stim_info;
+        StimDur = Pool(p).xb.stimulus_ch1(:,5)*1e-3;
+
+        nreps = Pool(p).xb.stimulus_ch1(1,4);
+        nStim = max(Pool(p).xb.stimulus_ch1(:,1));
+        %             nreps = 10;
+
+        %
+        % nStim = nStim + max(x2.stimulus_ch1(:,1));
+        %
         TotalReps = nStim*nreps;
         false_start = length(Pool(p).stim_times)-TotalReps;
- 
-    end
-    
-    start_stim_times = Pool(p).stim_times(false_start+1:end,1);
-    end_stim_times = Pool(p).stim_times(false_start+1:end,2);
-    
-    
-    
-    %             for id = 1:length(SU)
-    
-    
-    
-    raster.stim{p} = [];
-    raster.rep{p} = [];
-    raster.spikes{p} = [];
-    spikes_pooled{p} = [];
 
-    for rep = 1:TotalReps
-        %for raster
-        %                     if id ==4
-        %                         spike_timesSU{id} = a.spike_times{4};
-        %                     end
-        spikes1 = Pool(p).spiketimes(find(Pool(p).spiketimes>=start_stim_times(rep)-PreStim & ...
-            Pool(p).spiketimes<=end_stim_times(rep)+ PostStim)).';
-        spikes1 = spikes1 - start_stim_times(rep);
-        spikes_pooled{p} = [spikes_pooled{p} spikes1];
-        raster.stim{p} = [raster.stim{p} data_new(rep,1)*ones(size(spikes1))];
-        raster.rep{p} = [raster.rep{p} data_new(rep,2)*ones(size(spikes1))];
-        raster.spikes{p} = [raster.spikes{p} spikes1];
-        
-        %for rate
-        spikes2 = Pool(p).spiketimes(find(Pool(p).spiketimes>=start_stim_times(rep) & ...
-            Pool(p).spiketimes<=end_stim_times(rep))).';
-        rate.stim{p}(data_new(rep,1),data_new(rep,2)) = length(spikes2)/StimDur(data_new(rep,1));
-        spikes3 = Pool(p).spiketimes(find(Pool(p).spiketimes<=start_stim_times(rep) & ...
-            Pool(p).spiketimes>=start_stim_times(rep)-PreStim)).' ;
-        spikes4 = Pool(p).spiketimes(find(Pool(p).spiketimes<=end_stim_times(rep)+ PostStim & ...
-            Pool(p).spiketimes>=end_stim_times(rep))).' ;
-        
-        rate.pre{p}(data_new(rep,1),data_new(rep,2)) = length(spikes3)/PreStim;
-        rate.post{p}(data_new(rep,1),data_new(rep,2)) = length(spikes4)/PostStim;
-        
-        TrialLength = PreStim + StimDur(data_new(rep,1)) + PostStim;
-        rep_rate = zeros(1,(round(TrialLength*1e3)));
-        spikes4rate = spikes1 + PreStim;
-        for st = spikes4rate
-            if st<0
-                st1 = 1;
-                if ceil(st1*1e3) <= length(rep_rate)
-                    rep_rate(1,ceil(st1*1e3)) = rep_rate(1,ceil(st1*1e3))+1;
-                end
-            
-            elseif ceil(st*1e3) <= length(rep_rate)
-                rep_rate(1,ceil(st*1e3)) = rep_rate(1,ceil(st*1e3))+1;
-            end
-            
+        while false_start <0
+            nreps = nreps-1;
+            TotalReps = nStim*nreps;
+            false_start = length(Pool(p).stim_times)-TotalReps;
+
         end
-%         rate_total = [rate_total ; rate*1000];
-        % calculate PSTH
-        rate.PSTH{p,data_new(rep,1)}(data_new(rep,2),:) = rep_rate*1e3;
-        %
-        
-        
+
+        start_stim_times = Pool(p).stim_times(false_start+1:end,1);
+        end_stim_times = Pool(p).stim_times(false_start+1:end,2);
+
+
+
+        %             for id = 1:length(SU)
+
+
+
+        raster.stim{p} = [];
+        raster.rep{p} = [];
+        raster.spikes{p} = [];
+        spikes_pooled{p} = [];
+
+        for rep = 1:TotalReps
+            %for raster
+            %                     if id ==4
+            %                         spike_timesSU{id} = a.spike_times{4};
+            %                     end
+            spikes1 = Pool(p).spiketimes(find(Pool(p).spiketimes>=start_stim_times(rep)-PreStim & ...
+                Pool(p).spiketimes<=end_stim_times(rep)+ PostStim)).';
+            spikes1 = spikes1 - start_stim_times(rep);
+            spikes_pooled{p} = [spikes_pooled{p} spikes1];
+            raster.stim{p} = [raster.stim{p} data_new(rep,1)*ones(size(spikes1))];
+            raster.rep{p} = [raster.rep{p} data_new(rep,2)*ones(size(spikes1))];
+            raster.spikes{p} = [raster.spikes{p} spikes1];
+
+            %for rate
+            spikes2 = Pool(p).spiketimes(find(Pool(p).spiketimes>=start_stim_times(rep) & ...
+                Pool(p).spiketimes<=end_stim_times(rep))).';
+            rate.stim{p}(data_new(rep,1),data_new(rep,2)) = length(spikes2)/StimDur(data_new(rep,1));
+            spikes3 = Pool(p).spiketimes(find(Pool(p).spiketimes<=start_stim_times(rep) & ...
+                Pool(p).spiketimes>=start_stim_times(rep)-PreStim)).' ;
+            spikes4 = Pool(p).spiketimes(find(Pool(p).spiketimes<=end_stim_times(rep)+ PostStim & ...
+                Pool(p).spiketimes>=end_stim_times(rep))).' ;
+
+            rate.pre{p}(data_new(rep,1),data_new(rep,2)) = length(spikes3)/PreStim;
+            rate.post{p}(data_new(rep,1),data_new(rep,2)) = length(spikes4)/PostStim;
+
+            TrialLength = PreStim + StimDur(data_new(rep,1)) + PostStim;
+            rep_rate = zeros(1,(round(TrialLength*1e3)));
+            spikes4rate = spikes1 + PreStim;
+            for st = spikes4rate
+                if st<0
+                    st1 = 1;
+                    if ceil(st1*1e3) <= length(rep_rate)
+                        rep_rate(1,ceil(st1*1e3)) = rep_rate(1,ceil(st1*1e3))+1;
+                    end
+
+                elseif ceil(st*1e3) <= length(rep_rate)
+                    rep_rate(1,ceil(st*1e3)) = rep_rate(1,ceil(st*1e3))+1;
+                end
+
+            end
+    %         rate_total = [rate_total ; rate*1000];
+            % calculate PSTH
+            rate.PSTH{p,data_new(rep,1)}(data_new(rep,2),:) = rep_rate*1e3;
+            %
+
+
+        end
+
+        neuron_check_list = [neuron_check_list, Pool(p).neuron_nb];
+    %     drawnow
+
     end
 
-    neuron_check_list = [neuron_check_list, Pool(p).neuron_nb];
-%     drawnow
-    
-end
-
-for n = 1:length(Pool)
-    if isempty(Pool(n).neuron_nb)
-        Pool(n).neuron_nb = -1;
+    for n = 1:length(Pool)
+        if isempty(Pool(n).neuron_nb)
+            Pool(n).neuron_nb = -1;
+        end
     end
 end
-     
 fprintf('done! time: %4.2f sec. \n',toc')
 
 

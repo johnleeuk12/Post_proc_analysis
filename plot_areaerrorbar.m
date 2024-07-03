@@ -39,7 +39,7 @@ function plot_areaerrorbar(data, options)
         %options.color_line = [236 112  22]./255;
         options.alpha      = 0.5;
         options.line_width = 2;
-        options.error      = 'std';
+        options.error      = 'sem';
     end
     if(isfield(options,'x_axis')==0), options.x_axis = 1:size(data,2); end
     options.x_axis = options.x_axis(:);

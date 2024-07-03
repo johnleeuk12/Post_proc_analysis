@@ -3,10 +3,11 @@ function figures_tones(out)
 
 N_list = out.data{1,1}(:,1);
 
-animal_name = 'M160E';
+animal_name = 'M60F';
 
 % B : best dB, BF, peak lat, FR, min lat,
 
+% bestdb_ind: 2 = 80dB, 3 = 60dB, 4 = 40dB, 5 = 20dB
 
 B = zeros(length(N_list),7);
 
@@ -21,7 +22,8 @@ for n = 1:length(N_list)
             FR(db_ind) = 0;
         end
     end
-    [~, bestdb_ind] = max(FR);
+    [~, bestdb_ind] = max(FR); % This is where you select best ind
+%     bestdb_ind = 4;
     if length(out.data{1,bestdb_ind+1}{n,1}) == 1
         if ~isempty(out.data{1,bestdb_ind+1}{n,5})
             B(n,:) = [bestdb_ind, out.data{1,bestdb_ind+1}{n,1}, out.data{1,bestdb_ind+1}{n,2},...
@@ -29,6 +31,11 @@ for n = 1:length(N_list)
         else
             B(n,:) = [bestdb_ind, out.data{1,bestdb_ind+1}{n,1}, out.data{1,bestdb_ind+1}{n,2},...
                 out.data{1,bestdb_ind+1}{n,3},out.data{1,bestdb_ind+1}{n,4},NaN,db_count];
+        end
+    end
+    if out.data{1,1}(n,2) ==3
+        if out.data{1,1}(n,3) ~=4
+            B(n,2) = B(n,2)/8;
         end
     end
     if B(n,1) == 0
@@ -209,9 +216,9 @@ for h = 1:length(H_list)
     for ht = 1:length(htracks)
         %remove units without min_lat
         
-        ht_ind = (C.pool.neurons_info(:,2) == H_list(h) & C.pool.neurons_info(:,3) == htracks(ht) &~isnan(B(:,6))); % & B(:,7)>2);
+        ht_ind = (C.pool.neurons_info(:,2) == H_list(h) & C.pool.neurons_info(:,3) == htracks(ht)); % &~isnan(B(:,6))); % & B(:,7)>2);
         ht_ind2 = (C.pool.neurons_info(:,2) == H_list(h) & C.pool.neurons_info(:,3) == htracks(ht));
-        nz_ind = (out2.info(:,2) == H_list(h) & out2.info(:,3) ==htracks(ht)); 
+%         nz_ind = (out2.info(:,2) == H_list(h) & out2.info(:,3) ==htracks(ht)); 
         
         
         C.H{H_list(h)}{htracks(ht)}.BF.mean = mean(B(ht_ind,2),'omitnan');
@@ -237,14 +244,14 @@ for h = 1:length(H_list)
         C.H{H_list(h)}{htracks(ht)}.bestdB.mean = mean(B(ht_ind,7),'omitnan'); % wrong! best db is 1
         C.H{H_list(h)}{htracks(ht)}.bestdB.median = median(B(ht_ind,7),'omitnan');
         
-        C.H{H_list(h)}{htracks(ht)}.multipeak.mean = mean(B(ht_ind2,8),'omitnan');
-        C.H{H_list(h)}{htracks(ht)}.multipeak.median = median(B(ht_ind2,8),'omitnan');
-        C.H{H_list(h)}{htracks(ht)}.multipeak.percentage = 1- length(find(B(ht_ind2,8)==1))/length(B(ht_ind2,8));
-        
-        C.H{H_list(h)}{htracks(ht)}.noise.mean = mean(out2.data(nz_ind,6),'omitnan');
-        C.H{H_list(h)}{htracks(ht)}.noise.median = median(out2.data(nz_ind,6),'omitnan');
-        C.H{H_list(h)}{htracks(ht)}.noise.percentage = 1-sum(isnan(out2.data(nz_ind,6)))/length(out2.data(nz_ind,6)); %number of units that has same peaks bet PT and Noise
-        C.H{H_list(h)}{htracks(ht)}.noise.std = std(out2.data(nz_ind,6),'omitnan');
+%         C.H{H_list(h)}{htracks(ht)}.multipeak.mean = mean(B(ht_ind2,8),'omitnan');
+%         C.H{H_list(h)}{htracks(ht)}.multipeak.median = median(B(ht_ind2,8),'omitnan');
+%         C.H{H_list(h)}{htracks(ht)}.multipeak.percentage = 1- length(find(B(ht_ind2,8)==1))/length(B(ht_ind2,8));
+%         
+%         C.H{H_list(h)}{htracks(ht)}.noise.mean = mean(out2.data(nz_ind,6),'omitnan');
+%         C.H{H_list(h)}{htracks(ht)}.noise.median = median(out2.data(nz_ind,6),'omitnan');
+%         C.H{H_list(h)}{htracks(ht)}.noise.percentage = 1-sum(isnan(out2.data(nz_ind,6)))/length(out2.data(nz_ind,6)); %number of units that has same peaks bet PT and Noise
+%         C.H{H_list(h)}{htracks(ht)}.noise.std = std(out2.data(nz_ind,6),'omitnan');
 
     end
 

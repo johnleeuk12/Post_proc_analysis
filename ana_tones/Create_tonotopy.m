@@ -10,7 +10,7 @@ Derived from XDS's code for image processing
 global D
 D = [];
     animal_name = 'M56E';
-    file_dir = fullfile('D:\DATA', filesep, animal_name, filesep,'HT_position\');
+    file_dir = fullfile('E:\DATA', filesep, animal_name, filesep,'HT_position\');
     % Load EPhys Track positions
 %%
     D.Ephys.FileCoorTracks = [file_dir, animal_name, ...
